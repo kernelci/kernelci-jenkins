@@ -35,6 +35,11 @@ fi
     echo "Build has now finished, reporting result to dashboard."
     curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'"}' ${API}/job
 
+if [ "$TREE_NAME" != "kernelci" ]; then
+    echo "Only dealing with kernelci tree on staging.kernelci.org"
+    exit 0
+fi
+
     if [ "$EMAIL" != "true" ]; then
         echo "Not sending emails because EMAIL was false"
         exit 0
