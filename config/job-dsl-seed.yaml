@@ -1,0 +1,21 @@
+jobs:
+  - script: >
+      job('job-dsl') {
+        scm {
+          git {
+            branch('${KCI_CORE_BRANCH}')
+            remote {
+              url('${KCI_CORE_URL}')
+            }
+          }
+        }
+        triggers {
+                scm('H/5 * * * *')
+        }
+        steps {
+          dsl {
+            external('jenkins/dockerfiles/jenkins/config/jobs.groovy')
+            removeAction('DELETE')
+          }
+        }
+      }
