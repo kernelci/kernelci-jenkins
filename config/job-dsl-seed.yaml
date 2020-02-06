@@ -3,9 +3,9 @@ jobs:
       job('job-dsl') {
         scm {
           git {
-            branch('${KCI_CORE_BRANCH}')
+            branch('${KCI_JENKINS_BRANCH}')
             remote {
-              url('${KCI_CORE_URL}')
+              url('${KCI_JENKINS_URL}')
             }
           }
         }
@@ -14,7 +14,7 @@ jobs:
         }
         steps {
           dsl {
-            external('jenkins/dockerfiles/jenkins/config/jobs.groovy')
+            external('config/jobs.groovy')
             removeAction('DELETE')
           }
         }

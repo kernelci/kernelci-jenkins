@@ -11,5 +11,5 @@ services:
     - .env-extra
     build: .
     ports:
-    - "${JENKINS_PORT:-8002}:8080"
+    - "${JENKINS_PORT:-8080}:8080"
     - "50000:50000"
