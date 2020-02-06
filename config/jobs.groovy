@@ -114,7 +114,6 @@ pipelineJob('kernel-build') {
   }
 }
 
-
 job('kernel-arch-complete') {
   label('build-complete')
   logRotator {
@@ -141,5 +140,44 @@ job('kernel-arch-complete') {
     shell("(rm -rf kernelci-core; git clone --depth 1 -b " + KCI_CORE_BRANCH + " " + KCI_CORE_URL + """ kernelci-core)
 
 ./kernelci-core/jenkins/kernel-arch-complete.sh""")
+  }
+}
+
+pipelineJob('test-runner') {
+  definition {
+    cpsScm {
+      lightweight(true)
+      scm {
+        git {
+          branch(KCI_CORE_BRANCH)
+          remote {
+            url(KCI_CORE_URL)
+          }
+        }
+      }
+      scriptPath('jenkins/test-runner.jpl')
+    }
+  }
+  configure { project ->
+    project / 'properties' / 'org.jenkinsci.plugins.workflow.job.properties.DisableResumeJobProperty' {
+      'switch'('on')
+    }
+  }
+  logRotator {
+    daysToKeep(7)
+    numToKeep(200)
+  }
+  parameters {
+    stringParam('LABS', '', 'Names of the labs where to submit tests')
+    stringParam('TRIGGER_JOB_NAME', 'kernel-build-trigger', 'Name of the parent trigger job')
+    stringParam('TRIGGER_JOB_NUMBER', '', 'Number of the parent trigger job')
+    stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
+    stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
+    stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
+    stringParam('DOCKER_BASE', DOCKER_BASE, 'Dockerhub base address used for the build images.')
+    stringParam('BUILD_JOB_NAME', 'kernelci-build', 'Name of the job that built the kernel')
+    stringParam('BUILD_JOB_NUMBER', '', 'Number of the job that built the kernel')
+    stringParam('CALLBACK_ID', 'kernel-ci-callback', 'Identifier of the callback to look up an authentication token')
+    stringParam('CALLBACK_URL', KCI_API_URL, 'Base URL where to send the callbacks')
   }
 }
