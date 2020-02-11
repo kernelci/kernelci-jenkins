@@ -7,8 +7,6 @@ services:
     - PLUGINS_FORCE_UPGRADE=true
     env_file:
     - .env
-    - .env-labs
-    - .env-extra
     build: .
     ports:
     - "${JENKINS_PORT:-8080}:8080"
