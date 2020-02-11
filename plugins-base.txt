@@ -58,3 +58,4 @@ credentials
 workflow-cps
 job-dsl
 ws-cleanup
+copyartifact
