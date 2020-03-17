@@ -183,3 +183,75 @@ pipelineJob('test-runner') {
     stringParam('CALLBACK_URL', KCI_API_URL, 'Base URL where to send the callbacks')
   }
 }
+
+pipelineJob('rootfs-build-trigger') {
+  definition {
+    cpsScm {
+      lightweight(true)
+      scm {
+        git {
+          branch(KCI_CORE_BRANCH)
+          remote {
+            url(KCI_CORE_URL)
+          }
+        }
+      }
+      scriptPath('jenkins/rootfs-trigger.jpl')
+    }
+  }
+  configure { project ->
+    project / 'properties' / 'org.jenkinsci.plugins.workflow.job.properties.DisableResumeJobProperty' {
+      'switch'('on')
+    }
+  }
+  logRotator {
+    daysToKeep(7)
+    numToKeep(200)
+  }
+  parameters {
+    stringParam('KCI_TOKEN_ID', 'api-token', 'Identifier of the KernelCI backend API token stored in Jenkins.')
+    stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI Backend API')
+    stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
+    stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
+    stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
+    stringParam('DOCKER_BASE', DOCKER_BASE, 'Dockerhub base address used for the rootfs build images.')
+    stringParam('ROOTFS_CONFIG','','Name of the rootfs configuration, all rootfs will be built by default.')
+    stringParam('ROOTFS_ARCH','','Name of the rootfs arch config, all given arch will be built by default.')
+  }
+}
+
+pipelineJob('rootfs-builder') {
+  definition {
+    cpsScm {
+      lightweight(true)
+      scm {
+        git {
+          branch(KCI_CORE_BRANCH)
+          remote {
+            url(KCI_CORE_URL)
+          }
+        }
+      }
+      scriptPath('jenkins/rootfs-builder.jpl')
+    }
+  }
+  configure { project ->
+    project / 'properties' / 'org.jenkinsci.plugins.workflow.job.properties.DisableResumeJobProperty' {
+      'switch'('on')
+    }
+  }
+  logRotator {
+    daysToKeep(7)
+    numToKeep(200)
+  }
+  parameters {
+    stringParam('KCI_TOKEN_ID', 'api-token', 'Identifier of the KernelCI backend API token stored in Jenkins.')
+    stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI Backend API')
+    stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
+    stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
+    stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
+    stringParam('DOCKER_BASE', DOCKER_BASE, 'Dockerhub base address used for the rootfs build images.')
+    stringParam('ROOTFS_CONFIG','','Name of the rootfs configuration, all rootfs will be built by default.')
+    stringParam('ROOTFS_ARCH','','Name of the rootfs arch config, all given arch will be built by default.')
+  }
+}
