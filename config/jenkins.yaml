@@ -8,7 +8,7 @@ jenkins:
 
   authorizationStrategy:
     loggedInUsersCanDoAnything:
-      allowAnonymousRead: false
+      allowAnonymousRead: true
   securityRealm:
     local:
       allowsSignup: false
