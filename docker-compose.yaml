@@ -7,7 +7,10 @@ services:
     - PLUGINS_FORCE_UPGRADE=true
     env_file:
     - .env
-    build: .
+    build:
+      context: .
+      args:
+        config: ${CASC_JENKINS_CONFIG_SOURCE:-/config}
     ports:
     - "${JENKINS_PORT:-8080}:8080"
     - "50000:50000"
