@@ -1,14 +1,3 @@
-# KernelCI backend token
-credentials:
-  system:
-    domainCredentials:
-    - credentials:
-      - string:
-          description: "KernelCI API Upload token"
-          id: "api-token"
-          scope: GLOBAL
-          secret: "${KCI_API_TOKEN}"
-
 # jenkins base config
 jenkins:
   systemMessage: "KernelCI Jenkins configuration\n\n"
