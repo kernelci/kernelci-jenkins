@@ -257,6 +257,7 @@ pipelineJob('rootfs-builder') {
     stringParam('DOCKER_BASE', DOCKER_BASE, 'Dockerhub base address used for the rootfs build images.')
     stringParam('ROOTFS_CONFIG','','Name of the rootfs configuration, all rootfs will be built by default.')
     stringParam('ROOTFS_ARCH','','Name of the rootfs arch config, all given arch will be built by default.')
+    stringParam('PIPELINE_VERSION','','Unique string identifier for the series of rootfs build jobs.')
   }
 }
 
