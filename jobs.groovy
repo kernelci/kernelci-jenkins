@@ -10,6 +10,7 @@ def KCI_BISECTION_CALLBACK_ID = System.getenv("KCI_BISECTION_CALLBACK_ID")
 def KCI_BISECTION_EMAIL_RECIPIENTS = System.getenv("KCI_BISECTION_EMAIL_RECIPIENTS")
 def KCI_BISECTION_TREES_WHITELIST = System.getenv("KCI_BISECTION_TREES_WHITELIST")
 def KCI_BISECTION_LABS_WHITELIST = System.getenv("KCI_BISECTION_LABS_WHITELIST")
+def KCI_MONITOR_CRON = System.getenv("KCI_MONITOR_CRON")
 
 pipelineJob('kernel-tree-monitor') {
   definition {
@@ -24,6 +25,11 @@ pipelineJob('kernel-tree-monitor') {
         }
       }
       scriptPath('jenkins/monitor.jpl')
+    }
+    if (KCI_MONITOR_CRON) {
+      triggers {
+        cron(KCI_MONITOR_CRON)
+      }
     }
   }
   parameters {
