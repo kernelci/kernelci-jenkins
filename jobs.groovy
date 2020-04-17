@@ -187,7 +187,7 @@ pipelineJob('test-runner') {
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
     stringParam('DOCKER_BASE', DOCKER_BASE, 'Dockerhub base address used for the build images.')
-    stringParam('BUILD_JOB_NAME', 'kernelci-build', 'Name of the job that built the kernel')
+    stringParam('BUILD_JOB_NAME', 'kernel-build', 'Name of the job that built the kernel')
     stringParam('BUILD_JOB_NUMBER', '', 'Number of the job that built the kernel')
     stringParam('CALLBACK_ID', KCI_CALLBACK_ID, 'Identifier of the callback to look up an authentication token')
     stringParam('CALLBACK_URL', KCI_API_URL, 'Base URL where to send the callbacks')
