@@ -2,8 +2,8 @@ def KCI_CORE_BRANCH = System.getenv("KCI_CORE_BRANCH")
 def KCI_CORE_URL = System.getenv("KCI_CORE_URL")
 def KCI_STORAGE_URL = System.getenv("KCI_STORAGE_URL")
 def KCI_API_URL = System.getenv("KCI_API_URL")
-def DOCKER_BASE = System.getenv("DOCKER_BASE")
-def CONFIG_LIST = System.getenv("CONFIG_LIST")
+def KCI_DOCKER_BASE = System.getenv("KCI_DOCKER_BASE")
+def KCI_CONFIG_LIST = System.getenv("KCI_CONFIG_LIST")
 def KCI_LABS_LIST = System.getenv("KCI_LABS_LIST")
 def KCI_CALLBACK_ID = System.getenv("KCI_CALLBACK_ID")
 def KCI_BISECTION_CALLBACK_ID = System.getenv("KCI_BISECTION_CALLBACK_ID")
@@ -38,8 +38,8 @@ pipelineJob('kernel-tree-monitor') {
     stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
-    stringParam('DOCKER_BASE', DOCKER_BASE, 'Dockerhub base address used for the build images.')
-    stringParam('CONFIG_LIST', CONFIG_LIST, 'List of build configs to check instead of all the ones in build-configs.yaml.')
+    stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the build images.')
+    stringParam('CONFIG_LIST', KCI_CONFIG_LIST, 'List of build configs to check instead of all the ones in build-configs.yaml.')
   }
 }
 
@@ -77,7 +77,7 @@ pipelineJob('kernel-build-trigger') {
     stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
-    stringParam('DOCKER_BASE', DOCKER_BASE, 'Dockerhub base address used for the build images.')
+    stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the build images.')
     booleanParam('ALLOW_REBUILD', false, 'Allow building the same revision again.')
   }
 }
@@ -122,7 +122,7 @@ pipelineJob('kernel-build') {
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
     stringParam('PARALLEL_BUILDS', '4', 'Number of kernel builds to run in parallel')
-    stringParam('DOCKER_BASE', DOCKER_BASE, 'Dockerhub base address used for the build images.')
+    stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the build images.')
   }
 }
 
@@ -186,7 +186,7 @@ pipelineJob('test-runner') {
     stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
-    stringParam('DOCKER_BASE', DOCKER_BASE, 'Dockerhub base address used for the build images.')
+    stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the build images.')
     stringParam('BUILD_JOB_NAME', 'kernel-build', 'Name of the job that built the kernel')
     stringParam('BUILD_JOB_NUMBER', '', 'Number of the job that built the kernel')
     stringParam('CALLBACK_ID', KCI_CALLBACK_ID, 'Identifier of the callback to look up an authentication token')
@@ -224,7 +224,7 @@ pipelineJob('rootfs-build-trigger') {
     stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
-    stringParam('DOCKER_BASE', DOCKER_BASE, 'Dockerhub base address used for the rootfs build images.')
+    stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the rootfs build images.')
     stringParam('ROOTFS_CONFIG','','Name of the rootfs configuration, all rootfs will be built by default.')
     stringParam('ROOTFS_ARCH','','Name of the rootfs arch config, all given arch will be built by default.')
   }
@@ -260,7 +260,7 @@ pipelineJob('rootfs-builder') {
     stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
-    stringParam('DOCKER_BASE', DOCKER_BASE, 'Dockerhub base address used for the rootfs build images.')
+    stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the rootfs build images.')
     stringParam('ROOTFS_CONFIG','','Name of the rootfs configuration, all rootfs will be built by default.')
     stringParam('ROOTFS_ARCH','','Name of the rootfs arch config, all given arch will be built by default.')
     stringParam('PIPELINE_VERSION','','Unique string identifier for the series of rootfs build jobs.')
@@ -322,6 +322,6 @@ pipelineJob('lava-bisection') {
     stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
-    stringParam('DOCKER_BASE', DOCKER_BASE, 'Dockerhub base address used for the build images.')
+    stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the build images.')
   }
 }
