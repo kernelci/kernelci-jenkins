@@ -10,6 +10,7 @@ services:
     build:
       context: .
       args:
+        jenkins_docker_image: ${JENKINS_DOCKER_IMAGE:-jenkins/jenkins:latest}
         config: ${CASC_JENKINS_CONFIG_SOURCE:-/config}
     ports:
     - "${JENKINS_PORT:-8080}:8080"
