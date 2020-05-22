@@ -11,6 +11,8 @@ def KCI_BISECTION_EMAIL_RECIPIENTS = System.getenv("KCI_BISECTION_EMAIL_RECIPIEN
 def KCI_BISECTION_TREES_WHITELIST = System.getenv("KCI_BISECTION_TREES_WHITELIST")
 def KCI_BISECTION_LABS_WHITELIST = System.getenv("KCI_BISECTION_LABS_WHITELIST")
 def KCI_MONITOR_CRON = System.getenv("KCI_MONITOR_CRON")
+def KCI_JENKINS_BRANCH = System.getenv("KCI_JENKINS_BRANCH")
+def KCI_JENKINS_URL = System.getenv("KCI_JENKINS_URL")
 
 pipelineJob('kernel-tree-monitor') {
   definition {
@@ -200,13 +202,13 @@ pipelineJob('rootfs-build-trigger') {
       lightweight(true)
       scm {
         git {
-          branch(KCI_CORE_BRANCH)
+          branch(KCI_JENKINS_BRANCH)
           remote {
-            url(KCI_CORE_URL)
+            url(KCI_JENKINS_URL)
           }
         }
       }
-      scriptPath('jenkins/rootfs-trigger.jpl')
+      scriptPath('jobs/rootfs-trigger.jpl')
     }
   }
   configure { project ->
@@ -236,13 +238,13 @@ pipelineJob('rootfs-builder') {
       lightweight(true)
       scm {
         git {
-          branch(KCI_CORE_BRANCH)
+          branch(KCI_JENKINS_BRANCH)
           remote {
-            url(KCI_CORE_URL)
+            url(KCI_JENKINS_URL)
           }
         }
       }
-      scriptPath('jenkins/rootfs-builder.jpl')
+      scriptPath('jobs/rootfs-builder.jpl')
     }
   }
   configure { project ->
