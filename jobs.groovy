@@ -307,7 +307,7 @@ pipelineJob('lava-bisection') {
     stringParam('DEFCONFIG', 'defconfig', 'Name of the Linux kernel defconfig')
     stringParam('TARGET', '', 'Name of the device type to test (typically LAVA device type name)')
     stringParam('BUILD_ENVIRONMENT', '', 'Name of the build environment')
-    stringParam('LAB', 'Name of the lab in which to run the bisection tests', '')
+    stringParam('LAB', '', 'Name of the lab in which to run the bisection tests')
     stringParam('TEST_PLAN_VARIANT', '', 'Name of the KernelCI test plan variant (e.g. baseline_qemu)')
     stringParam('TEST_CASE', '', 'Test case path in dotted syntax (e.g. baseline.dmesg.crit)')
     stringParam('TEST_RUNS', '1', 'Number of LAVA jobs to run before considering pass or fail.')
