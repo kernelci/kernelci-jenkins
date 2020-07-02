@@ -63,100 +63,65 @@ PARALLEL_BUILDS
 @Library('kernelci') _
 import org.kernelci.util.Job
 
-def buildConfig(kdir, kci_core) {
-    def jopt = ""
-
-    if (params.PARALLEL_BUILDS)
-        jopt = "-j${params.PARALLEL_BUILDS}"
-
-    dir(kci_core) {
-        sh(script: """\
-./kci_build \
-build_kernel \
---kdir=${kdir} \
---defconfig=${params.DEFCONFIG} \
---arch=${params.ARCH} \
---build-env=${params.BUILD_ENVIRONMENT} \
---verbose \
-${jopt} \
-|| echo 'Kernel build failed'
-""")
-
-        sh(script: """\
-./kci_build \
-install_kernel \
---kdir=${kdir} \
---config=${params.BUILD_CONFIG} \
---describe=${params.GIT_DESCRIBE} \
---describe-verbose=${params.GIT_DESCRIBE_VERBOSE} \
---commit=${params.COMMIT_ID} \
-""")
-
-        withCredentials([string(credentialsId: params.KCI_TOKEN_ID,
-                                variable: 'SECRET')]) {
-            sh(script: """\
-./kci_build \
-push_kernel \
---kdir=${kdir} \
---token=${SECRET} \
---api=${params.KCI_API_URL} \
-""")
-
-            sh(script: """\
-./kci_build \
-publish_kernel \
---kdir=${kdir} \
---token=${SECRET} \
---api=${params.KCI_API_URL} \
-""")
-        }
-    }
-
-    dir("linux/_install_") {
-        archiveArtifacts("*.json")
-    }
-}
-
-node("docker" && params.NODE_LABEL) {
+/* K8S build */
+node("docker" && "k8s" && params.NODE_LABEL) {
     def j = new Job()
     def kci_core = "${env.WORKSPACE}/kernelci-core"
-    def kdir = "${env.WORKSPACE}/linux"
+    def k8s_context = "${env.K8S_CONTEXT}"
     def docker_image = null
 
-    print("""\
+        print("""\
     Config:    ${params.BUILD_CONFIG}
     CPU arch:  ${params.ARCH}
     Describe:  ${params.GIT_DESCRIBE}
     Revision:  ${params.COMMIT_ID}
     Defconfig: ${params.DEFCONFIG}
-    Compiler:  ${params.BUILD_ENVIRONMENT}""")
+    Compiler:  ${params.BUILD_ENVIRONMENT}
+    K8S ctx:   ${k8s_context}""")
 
-    j.dockerPullWithRetry("${params.DOCKER_BASE}build-base").inside() {
+    docker_image = "${params.DOCKER_BASE}build-k8s"
+    j.dockerPullWithRetry(docker_image).inside("-v $HOME/.kube:/.kube -v $HOME/.config/gcloud:/.config/gcloud -v $HOME/.azure:/.azure") {
         j.cloneKciCore(kci_core, params.KCI_CORE_URL, params.KCI_CORE_BRANCH)
         build_env_docker_image = j.dockerImageName(
             kci_core, params.BUILD_ENVIRONMENT, params.ARCH)
-        docker_image = "${params.DOCKER_BASE}build-${build_env_docker_image}"
-    }
 
-    j.dockerPullWithRetry(docker_image).inside() {
-        stage("Init") {
-            timeout(time: 30, unit: 'MINUTES') {
-                dir(kci_core) {
-                  sh(script: """./kci_build pull_tarball \
-                                --kdir ${kdir} \
-                                --url ${params.SRC_TARBALL} \
-                                --retries=12 \
-                                --delete \
-                  """)
-                }
-            }
-        }
+	dir(kci_core) {
+	    stage("Init") {
+		/* list clusters to init/refresh auth credentials */
+		print("K8S: Google Cloud clusters available:")
+		sh(script: "gcloud container clusters list || exit 0")
+		print("K8S: Azure clusters available:")
+		sh(script: "az aks list -o table || exit 0")
 
-        stage("Build") {
-            timeout(time: 180, unit: 'MINUTES') {
-                buildConfig(kdir, kci_core)
-                sh(script: "rm -rf ${kdir}")
-            }
-        }
+		print("K8S context: ${k8s_context}.  Current nodes:")
+		sh(script: "kubectl --context ${k8s_context} get nodes")
+	    }
+
+	    stage("Build") {
+		timeout(time: 45, unit: 'MINUTES') {
+		    def k8s_job = sh(script:"DOCKER_IMAGE=${build_env_docker_image} ./templates/k8s/gen.py", 
+				     returnStdout: true).trim()
+
+		    /* submit */
+		    sh(script: "kubectl --context ${k8s_context} apply -f ${k8s_job}.yaml")
+		    sh(script: "kubectl --context ${k8s_context} describe -f ${k8s_job}.yaml || exit 0")
+
+		    /* Wait for pod to finish (will also dump logs and remove job) */
+		    sh(script: "./templates/k8s/wait.py --context ${k8s_context} --job-name ${k8s_job} | tee ${k8s_job}.log")
+
+		    /* Find upload path */
+		    upload_path_line = sh(script: "grep \"^Upload path:\" ${k8s_job}.log",
+					  returnStdout: true).trim().tokenize(':')
+		    if (upload_path_line.size() > 0) {
+			upload_path = upload_path_line[1].trim()
+			print("Upload path: ${upload_path}")
+
+			sh(script: "wget -q http://storage.staging.kernelci.org/${upload_path}/bmeta.json")
+			sh(script: "wget -q http://storage.staging.kernelci.org/${upload_path}/dtbs.json")
+			archiveArtifacts("*.json")
+		    }
+		}
+	    }
+	}
     }
 }
