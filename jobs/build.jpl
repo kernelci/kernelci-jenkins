@@ -64,7 +64,7 @@ PARALLEL_BUILDS
 import org.kernelci.util.Job
 
 /* K8S build */
-node("docker" && "k8s" && params.NODE_LABEL) {
+node("docker" && params.NODE_LABEL) {
     def j = new Job()
     def kci_core = "${env.WORKSPACE}/kernelci-core"
     def k8s_context = "${env.K8S_CONTEXT}"

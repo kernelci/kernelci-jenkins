@@ -224,14 +224,14 @@ def scheduleTests(build_job_name, build_job_number, labs, kci_core) {
 }
 
 def buildKernelStep(job, arch, defconfig, build_env, opts, labs, kci_core) {
-    def node_label = "builder"
+    def node_label = "k8s"
     def parallel_builds = "4"
 
     if (defconfig.matches(".*allmodconfig.*")) {
-        node_label = "big-config-builder"
+        node_label = "k8s-big"
         parallel_builds = ""
     } else if (defconfig.matches("^defconfig.*") && arch == "arm64") {
-        node_label = "medium-config-builder"
+        node_label = "k8s-medium"
         parallel_builds = ""
     }
 
