@@ -327,10 +327,12 @@ node("docker && build-trigger") {
                 for (lab in labs_list) {
                     def lab_json = "${labs_info}/${lab}.json"
                     def token = "${lab}-lava-api"
-                    try {
-                        withCredentials([string(credentialsId: token,
-                                                variable: 'SECRET')]) {
-                            sh(script: """\
+                    def retry = 3
+                    while (retry--) {
+                        try {
+                            withCredentials([string(credentialsId: token,
+                                                    variable: 'SECRET')]) {
+                                sh(script: """\
 ./kci_test \
 get_lab_info \
 --lab=${lab} \
@@ -338,10 +340,12 @@ get_lab_info \
 --user=kernel-ci \
 --token=${SECRET} \
 """)
+                            }
+                            labs.add(lab)
+                            retry = 0
+                        } catch (error) {
+                            print("Error with ${lab}: ${error}")
                         }
-                        labs.add(lab)
-                    } catch (error) {
-                        print("Error with ${lab}: ${error}")
                     }
                 }
             }
