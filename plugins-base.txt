@@ -1,5 +1,4 @@
 configuration-as-code
-configuration-as-code-support
 jquery-detached
 cloudbees-folder
 durable-task
