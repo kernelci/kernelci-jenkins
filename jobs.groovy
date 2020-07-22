@@ -2,6 +2,7 @@ def KCI_CORE_BRANCH = System.getenv("KCI_CORE_BRANCH")
 def KCI_CORE_URL = System.getenv("KCI_CORE_URL")
 def KCI_STORAGE_URL = System.getenv("KCI_STORAGE_URL")
 def KCI_API_URL = System.getenv("KCI_API_URL")
+def KCI_API_TOKEN_ID = System.getenv("KCI_API_TOKEN_ID")
 def KCI_DOCKER_BASE = System.getenv("KCI_DOCKER_BASE")
 def KCI_CONFIG_LIST = System.getenv("KCI_CONFIG_LIST")
 def KCI_LABS_LIST = System.getenv("KCI_LABS_LIST")
@@ -36,7 +37,7 @@ pipelineJob('kernel-tree-monitor') {
   }
   parameters {
     stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI back-end API.')
-    stringParam('KCI_TOKEN_ID', 'api-token', 'Identifier of the KernelCI backend API token stored in Jenkins.')
+    stringParam('KCI_API_TOKEN_ID', KCI_API_TOKEN_ID, 'Identifier of the KernelCI backend API token stored in Jenkins.')
     stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
@@ -74,7 +75,7 @@ pipelineJob('kernel-build-trigger') {
     booleanParam('PUBLISH', true, 'Publish build results via the KernelCI backend API')
     booleanParam('EMAIL', true, 'Send build results via email')
     stringParam('LABS_WHITELIST', KCI_LABS_LIST, 'List of labs to include in the tests, all labs will be tested by default.')
-    stringParam('KCI_TOKEN_ID', 'api-token', 'Identifier of the KernelCI backend API token stored in Jenkins.')
+    stringParam('KCI_API_TOKEN_ID', KCI_API_TOKEN_ID, 'Identifier of the KernelCI backend API token stored in Jenkins.')
     stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI Backend API')
     stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
@@ -120,7 +121,7 @@ pipelineJob('kernel-build') {
     booleanParam('PUBLISH', true, 'Publish build results via the KernelCI backend API')
     booleanParam('EMAIL', true, 'Send build results via email')
     stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI back-end API.')
-    stringParam('KCI_TOKEN_ID', 'api-token', 'Identifier of the KernelCI backend API token stored in Jenkins.')
+    stringParam('KCI_API_TOKEN_ID', KCI_API_TOKEN_ID, 'Identifier of the KernelCI backend API token stored in Jenkins.')
     stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
@@ -138,7 +139,7 @@ job('kernel-arch-complete') {
   wrappers {
       preBuildCleanup()
       credentialsBinding {
-          string('EMAIL_AUTH_TOKEN', 'api-token')
+          string('EMAIL_AUTH_TOKEN', KCI_API_TOKEN_ID)
       }
   }
   parameters {
@@ -258,7 +259,7 @@ pipelineJob('rootfs-builder') {
     numToKeep(200)
   }
   parameters {
-    stringParam('KCI_TOKEN_ID', 'api-token', 'Identifier of the KernelCI backend API token stored in Jenkins.')
+    stringParam('KCI_API_TOKEN_ID', KCI_API_TOKEN_ID, 'Identifier of the KernelCI backend API token stored in Jenkins.')
     stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI Backend API')
     stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
@@ -321,7 +322,7 @@ pipelineJob('lava-bisection') {
     stringParam('TREES_WHITELIST', KCI_BISECTION_TREES_WHITELIST, 'If defined, jobs will abort if the KERNEL_TREE is not on that list.')
 
     stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI back-end API.')
-    stringParam('KCI_TOKEN_ID', 'api-token', 'Identifier of the KernelCI backend API token stored in Jenkins.')
+    stringParam('KCI_API_TOKEN_ID', KCI_API_TOKEN_ID, 'Identifier of the KernelCI backend API token stored in Jenkins.')
     stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')

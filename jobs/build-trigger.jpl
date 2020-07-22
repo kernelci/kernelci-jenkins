@@ -32,7 +32,7 @@ LABS_WHITELIST
   List of labs to include in the tests, all labs will be tested by default.
 KCI_API_URL (https://api.kernelci.org)
   URL of the KernelCI backend API
-KCI_TOKEN_ID
+KCI_API_TOKEN_ID
   Identifier of the KernelCI backend API token stored in Jenkins
 KCI_STORAGE_URL (https://storage.kernelci.org/)
   URL of the KernelCI storage server
@@ -103,7 +103,7 @@ describe \
         opts['describe'] = describe_list[1]
         opts['describe_verbose'] = describe_list[2]
 
-        withCredentials([string(credentialsId: params.KCI_TOKEN_ID,
+        withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
                                 variable: 'SECRET')]) {
             sh(script: """\
 ./kci_build \
@@ -249,7 +249,7 @@ def buildKernelStep(job, arch, defconfig, build_env, opts, labs, kci_core) {
         'KCI_CORE_URL': "${params.KCI_CORE_URL}",
         'KCI_CORE_BRANCH': "${params.KCI_CORE_BRANCH}",
         'KCI_API_URL': "${params.KCI_API_URL}",
-        'KCI_TOKEN_ID': "${params.KCI_TOKEN_ID}",
+        'KCI_API_TOKEN_ID': "${params.KCI_API_TOKEN_ID}",
         'KCI_STORAGE_URL': "${params.KCI_STORAGE_URL}",
         'DOCKER_BASE': "${params.DOCKER_BASE}",
     ]
