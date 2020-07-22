@@ -145,8 +145,6 @@ job('kernel-arch-complete') {
   parameters {
     stringParam('TREE_NAME', '', 'Name of the tree to be tested')
     stringParam('GIT_DESCRIBE', '', "Output of 'git describe' at the revision of the snapshot")
-    stringParam('ARCH', '', 'CPU architecture as understood by the Linux kernel build system')
-    stringParam('RESULTS', '', '')
     booleanParam('PUBLISH', false, 'Publish build results via the KernelCI backend API')
     booleanParam('EMAIL', true, 'Send build results via email')
     stringParam('BRANCH', '', '')
@@ -223,9 +221,6 @@ pipelineJob('rootfs-build-trigger') {
     numToKeep(200)
   }
   parameters {
-    stringParam('KCI_TOKEN_ID', 'api-token', 'Identifier of the KernelCI backend API token stored in Jenkins.')
-    stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI Backend API')
-    stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
     stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the rootfs build images.')
@@ -261,7 +256,6 @@ pipelineJob('rootfs-builder') {
   parameters {
     stringParam('KCI_API_TOKEN_ID', KCI_API_TOKEN_ID, 'Identifier of the KernelCI backend API token stored in Jenkins.')
     stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI Backend API')
-    stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
     stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the rootfs build images.')
