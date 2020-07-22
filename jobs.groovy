@@ -121,6 +121,7 @@ pipelineJob('kernel-build') {
     booleanParam('EMAIL', true, 'Send build results via email')
     stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI back-end API.')
     stringParam('KCI_TOKEN_ID', 'api-token', 'Identifier of the KernelCI backend API token stored in Jenkins.')
+    stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
     stringParam('PARALLEL_BUILDS', '4', 'Number of kernel builds to run in parallel')

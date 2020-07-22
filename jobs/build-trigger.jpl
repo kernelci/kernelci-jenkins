@@ -250,6 +250,7 @@ def buildKernelStep(job, arch, defconfig, build_env, opts, labs, kci_core) {
         'KCI_CORE_BRANCH': "${params.KCI_CORE_BRANCH}",
         'KCI_API_URL': "${params.KCI_API_URL}",
         'KCI_TOKEN_ID': "${params.KCI_TOKEN_ID}",
+        'KCI_STORAGE_URL': "${params.KCI_STORAGE_URL}",
         'DOCKER_BASE': "${params.DOCKER_BASE}",
     ]
     def job_params = []
