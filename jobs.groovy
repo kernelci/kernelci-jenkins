@@ -145,7 +145,7 @@ job('kernel-arch-complete') {
   parameters {
     stringParam('TREE_NAME', '', 'Name of the tree to be tested')
     stringParam('GIT_DESCRIBE', '', "Output of 'git describe' at the revision of the snapshot")
-    booleanParam('PUBLISH', false, 'Publish build results via the KernelCI backend API')
+    booleanParam('PUBLISH', true, 'Publish build results via the KernelCI backend API')
     booleanParam('EMAIL', true, 'Send build results via email')
     stringParam('BRANCH', '', '')
     stringParam('API', KCI_API_URL, 'URL of the KernelCI back-end API.')
