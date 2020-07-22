@@ -46,7 +46,7 @@ EMAIL (boolean)
   Send build results via email
 KCI_API_URL (https://api.kernelci.org)
   URL of the KernelCI backend API
-KCI_TOKEN_ID
+KCI_API_TOKEN_ID
   Identifier of the KernelCI backend API token stored in Jenkins
 KCI_STORAGE_URL (https://storage.kernelci.org/)
   URL of the KernelCI storage server

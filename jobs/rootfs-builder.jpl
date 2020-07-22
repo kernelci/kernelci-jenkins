@@ -28,7 +28,7 @@ KCI_CORE_BRANCH (master)
   Name of the branch to use in the kernelci-core repository
 KCI_API_URL (https://api.kernelci.org)
   URL of the KernelCI backend API
-KCI_TOKEN_ID
+KCI_API_TOKEN_ID
   Identifier of the KernelCI backend API token stored in Jenkins
 DOCKER_BASE
   Dockerhub base address used for the build images
@@ -60,7 +60,7 @@ mv jenkins/debian/debos/${config}/* ${pipeline_version}
 
 def upload(config, pipeline_version, kci_core) {
     dir(kci_core) {
-        withCredentials([string(credentialsId: params.KCI_TOKEN_ID,
+        withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
                                 variable: 'API_TOKEN')]) {
             sh(script: """\
 ./kci_rootfs \
