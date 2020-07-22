@@ -48,6 +48,8 @@ KCI_API_URL (https://api.kernelci.org)
   URL of the KernelCI backend API
 KCI_TOKEN_ID
   Identifier of the KernelCI backend API token stored in Jenkins
+KCI_STORAGE_URL (https://storage.kernelci.org/)
+  URL of the KernelCI storage server
 KCI_CORE_URL (https://github.com/kernelci/kernelci-core.git)
   URL of the kernelci-core repository
 KCI_CORE_BRANCH (master)
@@ -99,7 +101,7 @@ node("docker" && params.NODE_LABEL) {
 
 	    stage("Build") {
 		timeout(time: 45, unit: 'MINUTES') {
-		    def k8s_job = sh(script:"DOCKER_IMAGE=${build_env_docker_image} ./templates/k8s/gen.py", 
+		    def k8s_job = sh(script:"DOCKER_IMAGE=${build_env_docker_image} ./templates/k8s/gen.py",
 				     returnStdout: true).trim()
 
 		    /* submit */
@@ -116,8 +118,8 @@ node("docker" && params.NODE_LABEL) {
 			upload_path = upload_path_line[1].trim()
 			print("Upload path: ${upload_path}")
 
-			sh(script: "wget -q http://storage.staging.kernelci.org/${upload_path}/bmeta.json")
-			sh(script: "wget -q http://storage.staging.kernelci.org/${upload_path}/dtbs.json")
+			sh(script: "wget -q ${KCI_STORAGE_URL}/${upload_path}/bmeta.json")
+			sh(script: "wget -q ${KCI_STORAGE_URL}/${upload_path}/dtbs.json")
 			archiveArtifacts("*.json")
 		    }
 		}
