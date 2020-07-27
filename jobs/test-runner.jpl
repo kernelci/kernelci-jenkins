@@ -81,7 +81,7 @@ generate \
 --storage=${params.KCI_STORAGE_URL} \
 --lab=${lab} \
 --user=kernel-ci \
---token=${SECRET} \
+--lab-token=${SECRET} \
 --output=${jobs_dir} \
 --callback-id=${params.CALLBACK_ID} \
 --callback-url=${params.CALLBACK_URL} \
@@ -101,7 +101,7 @@ def submitJobs(kci_core, lab, jobs_dir)
 submit \
 --lab=${lab} \
 --user=kernel-ci \
---token=${SECRET} \
+--lab-token=${SECRET} \
 --jobs=${jobs_dir}/* \
 """)
         }

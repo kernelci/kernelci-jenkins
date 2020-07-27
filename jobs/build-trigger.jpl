@@ -111,7 +111,7 @@ update_last_commit \
 --config=${config} \
 --commit=${opts['commit']} \
 --api=${params.KCI_API_URL} \
---token=${SECRET} \
+--db-token=${SECRET} \
 """)
 
             sh(script: """\
@@ -128,7 +128,7 @@ push_tarball \
 --kdir=${kdir} \
 --storage=${params.KCI_STORAGE_URL} \
 --api=${params.KCI_API_URL} \
---token=${SECRET} \
+--db-token=${SECRET} \
 """, returnStdout: true).trim()
         }
     }
@@ -339,7 +339,7 @@ get_lab_info \
 --lab=${lab} \
 --lab-json=${lab_json} \
 --user=kernel-ci \
---token=${SECRET} \
+--lab-token=${SECRET} \
 """)
                             }
                             labs.add(lab)
