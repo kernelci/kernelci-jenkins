@@ -65,7 +65,7 @@ def upload(config, pipeline_version, kci_core) {
             sh(script: """\
 ./kci_rootfs \
 upload \
---token ${API_TOKEN} \
+--db-token ${API_TOKEN} \
 --api ${params.KCI_API_URL} \
 --rootfs-dir ${pipeline_version} \
 --upload-path images/rootfs/debian/${config}/${pipeline_version}

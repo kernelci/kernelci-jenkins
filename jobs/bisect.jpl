@@ -268,7 +268,7 @@ install_kernel \
 ./kci_build \
 push_kernel \
 --kdir=${kdir} \
---token=${SECRET} \
+--db-token=${SECRET} \
 --api=${params.KCI_API_URL} \
 """)
         }
@@ -302,7 +302,7 @@ get_lab_info \
 --lab=${params.LAB} \
 --lab-json=${env._LAB_JSON} \
 --user=kernel-ci \
---token=${SECRET} \
+--lab-token=${SECRET} \
 """)
         }
         stash(name: env._LAB_JSON, includes: env._LAB_JSON)
@@ -335,7 +335,7 @@ generate \
 --storage=${params.KCI_STORAGE_URL} \
 --lab=${params.LAB} \
 --user=kernel-ci \
---token=${SECRET} \
+--lab-token=${SECRET} \
 --callback-id=${params.LAVA_CALLBACK} \
 --callback-url=${hook.getURL()} \
 --callback-dataset=results \
@@ -350,7 +350,7 @@ generate \
 submit \
 --lab=${params.LAB} \
 --user=kernel-ci \
---token=${SECRET} \
+--lab-token=${SECRET} \
 --jobs=job.yaml \
 """)
         }
