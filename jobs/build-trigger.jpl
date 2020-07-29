@@ -220,6 +220,7 @@ def getLabsWithTests(build_job_name, number, labs, kci_core) {
             def lab_json = "${labs_info}/${lab}.json"
 
             def raw_jobs = sh(script: """\
+#!/bin/sh -e
 ./kci_test \
 list_jobs \
 --lab=${lab} \
