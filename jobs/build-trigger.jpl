@@ -202,6 +202,42 @@ tree_branch \
     }
 }
 
+def getLabsWithTests(build_job_name, number, labs, kci_core) {
+    def artifacts = "${env.WORKSPACE}/artifacts-${build_job_name}-${number}"
+    def lab_list = []
+
+    dir(artifacts) {
+        copyArtifacts(
+            projectName: build_job_name,
+            selector: specific("${number}")
+        )
+    }
+
+    dir(kci_core) {
+        def labs_info = "${env.WORKSPACE}/labs"
+
+        for (lab in labs) {
+            def lab_json = "${labs_info}/${lab}.json"
+
+            def raw_jobs = sh(script: """\
+./kci_test \
+list_jobs \
+--lab=${lab} \
+--lab-json=${lab_json} \
+--bmeta-json=${artifacts}/bmeta.json \
+--dtbs-json=${artifacts}/dtbs.json \
+""", returnStdout: true).trim()
+
+            if (raw_jobs)
+                lab_list.push(lab)
+        }
+    }
+
+    sh(script: "rm -rf ${artifacts}")
+
+    return lab_list
+}
+
 def scheduleTests(build_job_name, build_job_number, labs, kci_core) {
     dir(kci_core) {
         def labs_str = ""
@@ -261,8 +297,12 @@ def buildKernelStep(job, arch, defconfig, build_env, opts, labs, kci_core) {
     return {
         def res = build(job: job, parameters: job_params, propagate: false)
         print("${res.number}: ${arch} ${defconfig} ${build_env} ${res.result}")
-        if (res.result == "SUCCESS")
-            scheduleTests(job, res.number, labs, kci_core)
+        if (res.result == "SUCCESS") {
+            def test_labs = getLabsWithTests(job, res.number, labs, kci_core)
+            if (test_labs) {
+                scheduleTests(job, res.number, test_labs, kci_core)
+            }
+        }
     }
 }
 
