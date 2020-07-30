@@ -35,6 +35,10 @@ pipelineJob('kernel-tree-monitor') {
       }
     }
   }
+  logRotator {
+    daysToKeep(7)
+    numToKeep(200)
+  }
   parameters {
     stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI back-end API.')
     stringParam('KCI_API_TOKEN_ID', KCI_API_TOKEN_ID, 'Identifier of the KernelCI backend API token stored in Jenkins.')
@@ -68,7 +72,7 @@ pipelineJob('kernel-build-trigger') {
   }
   logRotator {
     daysToKeep(7)
-    numToKeep(200)
+    numToKeep(48)
   }
   parameters {
     stringParam('BUILD_CONFIG', '', 'Name of the build configuration.')
@@ -107,6 +111,7 @@ pipelineJob('kernel-build') {
   }
   logRotator {
     daysToKeep(1)
+    numToKeep(1024)
   }
   parameters {
     stringParam('ARCH', '', 'CPU architecture as understood by the Linux kernel build system')
@@ -141,6 +146,10 @@ job('kernel-arch-complete') {
       credentialsBinding {
           string('EMAIL_AUTH_TOKEN', KCI_API_TOKEN_ID)
       }
+  }
+  logRotator {
+    daysToKeep(7)
+    numToKeep(48)
   }
   parameters {
     stringParam('TREE_NAME', '', 'Name of the tree to be tested')
@@ -178,8 +187,8 @@ pipelineJob('test-runner') {
     }
   }
   logRotator {
-    daysToKeep(7)
-    numToKeep(200)
+    daysToKeep(1)
+    numToKeep(1024)
   }
   parameters {
     stringParam('LABS', '', 'Names of the labs where to submit tests')
