@@ -76,6 +76,8 @@ def buildRootfsStep(job, config ,arch) {
         'ROOTFS_CONFIG': config,
         'ROOTFS_ARCH': arch,
         'PIPELINE_VERSION':pipeline_version,
+        'KCI_CORE_URL': "${params.KCI_CORE_URL}",
+        'KCI_CORE_BRANCH': "${params.KCI_CORE_BRANCH}",
     ]
     def job_params = []
 
