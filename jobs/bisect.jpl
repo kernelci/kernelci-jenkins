@@ -61,7 +61,7 @@ TEST_RUNS (1)
   Number of LAVA jobs to run before considering pass or fail.
 KCI_API_URL (https://api.kernelci.org)
   URL of the KernelCI backend API
-KCI_TOKEN_ID
+KCI_API_TOKEN_ID
   Identifier of the KernelCI backend API token stored in Jenkins
 KCI_STORAGE_URL (https://storage.kernelci.org/)
   URL of the KernelCI storage server
@@ -262,7 +262,7 @@ install_kernel \
 --output=${output} \
 """)
 
-        withCredentials([string(credentialsId: params.KCI_TOKEN_ID,
+        withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
                                 variable: 'SECRET')]) {
             sh(script: """\
 ./kci_build \
@@ -506,7 +506,7 @@ ${params.KERNEL_TREE}/${params.KERNEL_BRANCH} bisection: \
 ${params.TEST_CASE} on ${params.TARGET}"
 
     dir(kci_core) {
-        withCredentials([string(credentialsId: params.KCI_TOKEN_ID,
+        withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
                                 variable: 'SECRET')]) {
             def egg_cache = eggCache()
             sh(script: """
