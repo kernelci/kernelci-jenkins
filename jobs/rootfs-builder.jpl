@@ -49,7 +49,7 @@ def build(config, arch, pipeline_version, kci_core) {
         sh(script: """\
 ./kci_rootfs \
 build \
---config ${config} \
+--rootfs-config ${config} \
 --arch ${arch} \
 --data-path jenkins/debian/debos
 mkdir -p ${pipeline_version}
