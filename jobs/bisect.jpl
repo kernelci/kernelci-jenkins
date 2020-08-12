@@ -299,7 +299,7 @@ def fetchLabInfo(kci_core) {
             sh(script: """\
 ./kci_test \
 get_lab_info \
---lab=${params.LAB} \
+--lab-config=${params.LAB} \
 --lab-json=${env._LAB_JSON} \
 --user=kernel-ci \
 --lab-token=${SECRET} \
@@ -333,7 +333,7 @@ generate \
 --dtbs-json=${env._DTBS_JSON} \
 --lab-json=${env._LAB_JSON} \
 --storage=${params.KCI_STORAGE_URL} \
---lab=${params.LAB} \
+--lab-config=${params.LAB} \
 --user=kernel-ci \
 --lab-token=${SECRET} \
 --callback-id=${params.LAVA_CALLBACK} \
@@ -348,7 +348,7 @@ generate \
             sh(script: """ \
 ./kci_test \
 submit \
---lab=${params.LAB} \
+--lab-config=${params.LAB} \
 --user=kernel-ci \
 --lab-token=${SECRET} \
 --jobs=job.yaml \
@@ -514,7 +514,7 @@ PYTHON_EGG_CACHE=${egg_cache} \
 ./push-bisection-results.py \
 --token=${SECRET} \
 --api=${params.KCI_API_URL} \
---lab=${params.LAB} \
+--lab-config=${params.LAB} \
 --arch=${params.ARCH} \
 --defconfig=${params.DEFCONFIG} \
 --build-environment=${params.BUILD_ENVIRONMENT} \

@@ -51,7 +51,7 @@ def checkConfig(config, kci_core, trees_dir) {
 ${kci_core}/kci_build \
 --yaml-configs=${kci_core}/build-configs.yaml \
 check_new_commit \
---config=${config} \
+--build-config=${config} \
 --storage=${params.KCI_STORAGE_URL} \
 """, returnStdout: true).trim()
 

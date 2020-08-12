@@ -42,7 +42,7 @@ def listVariants(kci_core, config_list, rootfs_config, rootfs_arch) {
     def cli_opts = ' '
 
     if (rootfs_config) {
-        cli_opts += " --config ${rootfs_config}"
+        cli_opts += " --rootfs-config ${rootfs_config}"
     }
 
     if (rootfs_arch) {

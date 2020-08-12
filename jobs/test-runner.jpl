@@ -79,7 +79,7 @@ generate \
 --dtbs-json=${artifacts}/dtbs.json \
 --lab-json=${artifacts}/${lab}.json \
 --storage=${params.KCI_STORAGE_URL} \
---lab=${lab} \
+--lab-config=${lab} \
 --user=kernel-ci \
 --lab-token=${SECRET} \
 --output=${jobs_dir} \
@@ -99,7 +99,7 @@ def submitJobs(kci_core, lab, jobs_dir)
             sh(script: """\
 ./kci_test \
 submit \
---lab=${lab} \
+--lab-config=${lab} \
 --user=kernel-ci \
 --lab-token=${SECRET} \
 --jobs=${jobs_dir}/* \
