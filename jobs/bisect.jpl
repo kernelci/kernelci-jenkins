@@ -514,7 +514,7 @@ PYTHON_EGG_CACHE=${egg_cache} \
 ./push-bisection-results.py \
 --token=${SECRET} \
 --api=${params.KCI_API_URL} \
---lab-config=${params.LAB} \
+--lab=${params.LAB} \
 --arch=${params.ARCH} \
 --defconfig=${params.DEFCONFIG} \
 --build-environment=${params.BUILD_ENVIRONMENT} \
