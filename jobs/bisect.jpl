@@ -53,7 +53,7 @@ BUILD_ENVIRONMENT
   Name of the build environment
 LAB
   Name of the lab in which to run the bisection tests
-TEST_PLAN_VARIANT:
+TEST_PLAN_VARIANT
   Name of the KernelCI test plan variant (e.g. baseline_qemu)
 TEST_CASE
   Test case path in dotted syntax (e.g. baseline.dmesg.crit)
