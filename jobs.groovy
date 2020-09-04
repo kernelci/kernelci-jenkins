@@ -110,8 +110,8 @@ pipelineJob('kernel-build') {
     }
   }
   logRotator {
-    daysToKeep(1)
-    numToKeep(1024)
+    daysToKeep(2)
+    numToKeep(4096)
   }
   parameters {
     stringParam('ARCH', '', 'CPU architecture as understood by the Linux kernel build system')
