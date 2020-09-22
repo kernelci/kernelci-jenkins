@@ -3,7 +3,7 @@
 set -e
 
 echo "Shutting down Jenkins container..."
-docker-compose down
+docker-compose stop
 
 jenkins_container=$(docker ps | grep kernelci-jenkins_jenkins) || echo -n ''
 if [ -n "$jenkins_container" ]; then
