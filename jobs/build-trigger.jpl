@@ -337,6 +337,7 @@ node("docker && build-trigger") {
     def docker_image = "${params.DOCKER_BASE}build-base"
     def opts = [:]
     def configs = []
+    def buildStatus = null
 
     print("""\
     Config:    ${params.BUILD_CONFIG}
@@ -437,11 +438,19 @@ get_lab_info \
                 i += 1
             }
 
-            parallel(builds)
+            try {
+                parallel(builds)
+            } catch (err) {
+                print("Builds failed: ${err}")
+                buildStatus = "FAILURE"
+            }
         }
 
         stage("Complete") {
             buildsComplete("kernel-arch-complete", opts)
         }
+
+        if (buildStatus)
+            currentBuild.result = buildStatus;
     }
 }
