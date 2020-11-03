@@ -249,7 +249,7 @@ build_kernel \
 --defconfig=${expanded_defconfig} \
 --arch=${params.ARCH} \
 --build-env=${params.BUILD_ENVIRONMENT} \
---output=${output} \
+--output=${kdir} \
 """)
 
         sh(script: """\
