@@ -45,7 +45,7 @@ DOCKER_BASE (kernelci/)
 @Library('kernelci') _
 import org.kernelci.util.Job
 
-def checkConfig(config, kci_core, trees_dir) {
+def checkConfig(config, kci_core) {
     def retry = 3
     def commit = null
 
@@ -92,7 +92,6 @@ check_new_commit \
 node("docker && monitor") {
     def j = new Job()
     def kci_core = env.WORKSPACE + '/kernelci-core'
-    def trees_dir = "${env.WORKSPACE}/trees"
     def docker_image = "${params.DOCKER_BASE}build-base"
 
     print("""\
@@ -123,7 +122,7 @@ node("docker && monitor") {
                 for (String config: config_list) {
                     def config_name = config
                     config_jobs[config_name] = {
-                        checkConfig(config_name, kci_core, trees_dir)
+                        checkConfig(config_name, kci_core)
                     }
                 }
 
