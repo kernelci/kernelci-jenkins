@@ -294,8 +294,12 @@ def buildRevision(kdir, kci_core, git_rev, name) {
 def fetchLabInfo(kci_core) {
     dir(kci_core) {
         def token = "${params.LAB}-lava-api"
+        def retry = 3
 
-        withCredentials([string(credentialsId: token, variable: 'SECRET')]) {
+        while (retry--) {
+            try {
+                withCredentials([string(credentialsId: token,
+                                        variable: 'SECRET')]) {
             sh(script: """\
 ./kci_test \
 get_lab_info \
@@ -304,6 +308,14 @@ get_lab_info \
 --user=kernel-ci \
 --lab-token=${SECRET} \
 """)
+                    retry = 0
+                }
+            } catch (error) {
+                if (retry)
+                    print("Error with ${lab}: ${error}, retrying...")
+                else
+                    throw error
+            }
         }
         stash(name: env._LAB_JSON, includes: env._LAB_JSON)
     }
