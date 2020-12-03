@@ -7,8 +7,17 @@ create a pre-configured Jenkins Docker container, and the `job-dsl` Groovy code
 for generating the KernelCI jobs.  There are some sample `docker-compose`
 environment files with variables used for production, staging, and development.
 
-Usage
-=====
+## Prerequisites
+
+This Jenkins project is used to run a full KernelCI pipeline automatically.  It
+needs at least a
+[`kernelci-backend`](https://github.com/kernelci/kernelci-backend) instance to
+be able to publish kernel builds, and typically at least one
+[LAVA](https://www.lavasoftware.org/) lab instance to run tests.  Installing
+those things is not covered here, please refer to their corresponding
+documentation.
+
+## Configuration
 
 * Copy the `env` file to `.env` and edit it with your own settings
 * Add any extra plugins (`github-auth`, `openstack` etc) to the
@@ -22,10 +31,39 @@ Usage
 * Add any extra parameters you've used in your config to `.env`.
 * Edit the `ADMIN_PASSWORD` in `.env`.
 
-Execute `docker-compose up --build` and Jenkins should launch.
+## Usage
 
-Initially a single job is created, this is the DSL seed job which should create
-all the other ones defined in [`jobs.groovy`](jobs.groovy).
+Then the container can be used using regular `docker-compose` commands.  Here
+are a few examples:
+* `docker-compose up --build`
+  * **action**: start the container in the foreground
+  * **notes**: useful when testing the configuration
+
+* `docker-compose up --build -d`
+  * **action**: start the container in the background
+  * **notes**: typical usage to keep the service running
+
+* `docker-compose stop`
+  * **action**: stop the container
+  * **notes**: useful when editing the configuration
+
+* `docker-compose down`
+  * **action**: destroy the container
+  * **notes**: WARNING: any jobs data or manual Jenkins configuration will be
+    lost
+
+* `docker-compose logs -f jenkins`
+  * **action**: read the Jenkins logs
+  * **notes**: useful for monitoring activity
+
+* `docker-compose exec jenkins bash`
+  * **action**: start an interactive shell in the running container
+  * **notes**: useful to debug problems by accessing files directly
+
+Initially a single job is created, this is the DSL seed job which can be used
+to create all the other ones defined in [`jobs.groovy`](jobs.groovy).  Open the
+Jenkins web UI and start this job to see the other ones listed below appear on
+the Jenkins instance.
 
 ## Jenkins jobs
 
