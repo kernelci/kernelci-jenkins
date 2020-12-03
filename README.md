@@ -10,7 +10,7 @@ environment files with variables used for production, staging, and development.
 Usage
 =====
 
-* Choose a `env-*` file and copy it to `.env`, or create your own.
+* Copy the `env` file to `.env` and edit it with your own settings
 * Add any extra plugins (`github-auth`, `openstack` etc) to the
   [`plugins-extra.txt`](plugins-extra.txt) file and they will be included in
   the build.
