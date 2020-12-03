@@ -1,0 +1,32 @@
+# kernelci-core repo
+KCI_CORE_BRANCH=master
+KCI_CORE_URL=https://github.com/kernelci/kernelci-core
+
+# kernelci-jenkins repo
+KCI_JENKINS_BRANCH=master
+KCI_JENKINS_URL=https://github.com/kernelci/kernelci-jenkins
+
+# kernelci-backend API and storage
+KCI_API_URL=https://<hostname>
+KCI_API_TOKEN=<token>
+KCI_API_TOKEN_ID=kci-api-token
+KCI_STORAGE_URL=http://<hostname>
+
+# bisection
+KCI_BISECTION_CALLBACK_ID=kernel-ci-bisection-webhook
+KCI_BISECTION_EMAIL_RECIPIENTS=<email recipients>
+KCI_BISECTION_TREES_WHITELIST=mainline stable next
+KCI_BISECTION_LABS_WHITELIST=<list of labs separated by spaces>
+
+# common job parameters
+KCI_CONFIG_LIST=kernelci_staging
+KCI_LABS_LIST=<list of labs separated by spaces>
+KCI_CALLBACK_ID=kernel-ci-callback
+KCI_DOCKER_BASE=kernelci/
+
+# system
+JENKINS_URL=https://<Jenkins hostname>:8080
+JENKINS_PORT=8002
+JENKINS_DOCKER_IMAGE=jenkins/jenkins:2.222.4
+ADMIN_PASSWORD=<put your own arbitrary admin password>
+CASC_JENKINS_CONFIG_SOURCE=/data/<directory for your instance>
