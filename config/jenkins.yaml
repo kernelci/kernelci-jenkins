@@ -14,13 +14,13 @@ security:
 unclassified:
   globalLibraries:
     libraries:
-    - defaultVersion: "${KCI_CORE_BRANCH}"
+    - defaultVersion: "${KCI_JENKINS_BRANCH}"
       name: "kernelci"
       retriever:
         modernSCM:
           scm:
             git:
-              remote: "${KCI_CORE_URL}"
+              remote: "${KCI_JENKINS_URL}"
 
   location:
     adminAddress: info@kernelci.org
