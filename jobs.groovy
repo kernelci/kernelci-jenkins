@@ -139,7 +139,7 @@ job('kernel-arch-complete') {
   label('build-complete')
   logRotator {
     daysToKeep(7)
-    numToKeep(30)
+    numToKeep(100)
   }
   wrappers {
       preBuildCleanup()
@@ -147,17 +147,13 @@ job('kernel-arch-complete') {
           string('EMAIL_AUTH_TOKEN', KCI_API_TOKEN_ID)
       }
   }
-  logRotator {
-    daysToKeep(7)
-    numToKeep(48)
-  }
   parameters {
     stringParam('TREE_NAME', '', 'Name of the tree to be tested')
     stringParam('GIT_DESCRIBE', '', "Output of 'git describe' at the revision of the snapshot")
     booleanParam('PUBLISH', true, 'Publish build results via the KernelCI backend API')
     booleanParam('EMAIL', true, 'Send build results via email')
     stringParam('BRANCH', '', '')
-    stringParam('API', KCI_API_URL, 'URL of the KernelCI back-end API.')
+    stringParam('API', KCI_API_URL, 'URL of the KernelCI backend API.')
   }
   steps {
     shell("(rm -rf kernelci-core; git clone --depth 1 -b " + KCI_CORE_BRANCH + " " + KCI_CORE_URL + """ kernelci-core)
