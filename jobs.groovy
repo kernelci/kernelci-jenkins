@@ -156,9 +156,15 @@ job('kernel-arch-complete') {
     stringParam('API', KCI_API_URL, 'URL of the KernelCI backend API.')
   }
   steps {
-    shell("(rm -rf kernelci-core; git clone --depth 1 -b " + KCI_CORE_BRANCH + " " + KCI_CORE_URL + """ kernelci-core)
+    shell("""
+#!/bin/bash
 
-./kernelci-core/jenkins/kernel-arch-complete.sh""")
+set -e
+
+rm -rf kernelci-jenkins
+git clone --depth 1 -b ${KCI_JENKINS_BRANCH} ${KCI_JENKINS_URL}
+./kernelci-jenkins/scripts/kernel-arch-complete.sh
+""")
   }
 }
 
