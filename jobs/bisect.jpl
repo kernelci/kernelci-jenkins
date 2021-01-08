@@ -382,7 +382,7 @@ def getResult(kci_core, hook) {
             def egg_cache = eggCache()
             status = sh(returnStatus: true, script: """
 PYTHON_EGG_CACHE=${egg_cache} \
-./lava-v2-callback.py \
+./scripts/lava-v2-callback.py \
 --token=${SECRET} \
 --test-case=${params.TEST_CASE} \
 ${json_file}
@@ -523,7 +523,7 @@ ${params.TEST_CASE} on ${params.TARGET}"
             def egg_cache = eggCache()
             sh(script: """
 PYTHON_EGG_CACHE=${egg_cache} \
-./push-bisection-results.py \
+./scripts/push-bisection-results.py \
 --token=${SECRET} \
 --api=${params.KCI_API_URL} \
 --lab=${params.LAB} \
