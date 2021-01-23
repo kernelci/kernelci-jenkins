@@ -49,24 +49,25 @@ def checkConfig(config, kci_core) {
     def retry = 3
     def commit = null
 
-    while (retry--) {
-        try {
-            commit = sh(
-        script: """
-${kci_core}/kci_build \
---yaml-configs=${kci_core}/build-configs.yaml \
+    dir(kci_core) {
+        while (retry--) {
+            try {
+                commit = sh(
+                    script: """
+./kci_build \
 check_new_commit \
 --build-config=${config} \
 --storage=${params.KCI_STORAGE_URL} \
 """, returnStdout: true)
-            retry = 0
-        } catch (error) {
+                retry = 0
+            } catch (error) {
 
-            if (retry) {
-                print("Failed to check ${config}, retyring: ${error}")
-                sleep(1)
-            } else {
-                print("ERROR: All attempts failed with ${config}")
+                if (retry) {
+                    print("Failed to check ${config}, retyring: ${error}")
+                    sleep(1)
+                } else {
+                    print("ERROR: All attempts failed with ${config}")
+                }
             }
         }
     }
