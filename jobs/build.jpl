@@ -101,7 +101,7 @@ node("docker" && params.NODE_LABEL) {
 
 	    stage("Build") {
 		timeout(time: 45, unit: 'MINUTES') {
-		    def k8s_job = sh(script:"DOCKER_IMAGE=${build_env_docker_image} ./templates/k8s/gen.py",
+		    def k8s_job = sh(script:"DOCKER_IMAGE=${build_env_docker_image} ./config/k8s/gen.py",
 				     returnStdout: true).trim()
 
 		    /* submit */
@@ -109,7 +109,7 @@ node("docker" && params.NODE_LABEL) {
 		    sh(script: "kubectl --context ${k8s_context} describe -f ${k8s_job}.yaml || exit 0")
 
 		    /* Wait for pod to finish (will also dump logs and remove job) */
-		    sh(script: "./templates/k8s/wait.py --context ${k8s_context} --job-name ${k8s_job} | tee ${k8s_job}.log")
+		    sh(script: "./config/k8s/wait.py --context ${k8s_context} --job-name ${k8s_job} | tee ${k8s_job}.log")
 
 		    /* Find upload path */
 		    upload_path_line = sh(script: "grep \"^Upload path:\" ${k8s_job}.log",
