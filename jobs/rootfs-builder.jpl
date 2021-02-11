@@ -51,9 +51,9 @@ def build(config, arch, pipeline_version, kci_core) {
 build \
 --rootfs-config ${config} \
 --arch ${arch} \
---data-path jenkins/debian/debos
+--data-path config/rootfs/debos
 mkdir -p ${pipeline_version}
-mv jenkins/debian/debos/${config}/* ${pipeline_version}
+mv config/rootfs/debos/${config}/* ${pipeline_version}
 """)
     }
 }
