@@ -119,7 +119,8 @@ node("docker" && params.NODE_LABEL) {
 			print("Upload path: ${upload_path}")
 
 			sh(script: "wget -q ${KCI_STORAGE_URL}/${upload_path}/bmeta.json")
-			sh(script: "wget -q ${KCI_STORAGE_URL}/${upload_path}/dtbs.json")
+			sh(script: "wget -q ${KCI_STORAGE_URL}/${upload_path}/steps.json")
+			sh(script: "wget -q ${KCI_STORAGE_URL}/${upload_path}/artifacts.json")
 			archiveArtifacts("*.json")
 		    }
 		}
