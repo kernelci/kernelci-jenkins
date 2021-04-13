@@ -75,8 +75,7 @@ def generateJobs(kci_core, lab, artifacts, jobs_dir)
             sh(script: """\
 ./kci_test \
 generate \
---bmeta-json=${artifacts}/bmeta.json \
---dtbs-json=${artifacts}/dtbs.json \
+--install-path=${artifacts} \
 --lab-json=${artifacts}/${lab}.json \
 --storage=${params.KCI_STORAGE_URL} \
 --lab-config=${lab} \
