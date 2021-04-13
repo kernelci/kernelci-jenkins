@@ -225,7 +225,7 @@ def getLabsWithTests(build_job_name, number, labs, kci_core) {
 list_jobs \
 --lab-config=${lab} \
 --lab-json=${lab_json} \
---build-output=${artifacts} \
+--install-path=${artifacts} \
 """, returnStdout: true).trim()
 
             if (raw_jobs)
