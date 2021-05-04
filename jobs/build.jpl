@@ -44,6 +44,8 @@ PUBLISH (boolean)
   Publish build results via the KernelCI backend API
 EMAIL (boolean)
   Send build results via email
+KCI_DB_CONFIG (kernelci.org)
+  Name of the --db-config value to use with kci_data
 KCI_API_URL (https://api.kernelci.org)
   URL of the KernelCI backend API
 KCI_API_TOKEN_ID
