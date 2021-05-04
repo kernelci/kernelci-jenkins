@@ -126,7 +126,7 @@ pipelineJob('kernel-build') {
     stringParam('NODE_LABEL', '', 'Label to use to choose a node on which to run this job')
     booleanParam('PUBLISH', true, 'Publish build results via the KernelCI backend API')
     booleanParam('EMAIL', true, 'Send build results via email')
-    stringParam('KCI_DB_CONFIG', KCI_DB_CONFIG, 'Name of the --db-config value to use with kci_data.')
+    stringParam('KCI_DB_CONFIG', 'staging.kernelci.org', 'Name of the --db-config value to use with kci_data.')
     stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI back-end API.')
     stringParam('KCI_API_TOKEN_ID', KCI_API_TOKEN_ID, 'Identifier of the KernelCI backend API token stored in Jenkins.')
     stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
