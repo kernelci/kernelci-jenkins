@@ -15,3 +15,5 @@ services:
     ports:
     - "${JENKINS_PORT:-8080}:8080"
     - "50000:50000"
+    volumes:
+    - /data/jenkins_home:/var/jenkins_home
