@@ -65,6 +65,8 @@ KCI_API_TOKEN_ID
   Identifier of the KernelCI backend API token stored in Jenkins
 KCI_STORAGE_URL (https://storage.kernelci.org/)
   URL of the KernelCI storage server
+KCI_DB_CONFIG (kernelci.org)
+  Name of the database config (--db-config argument)
 KCI_CORE_URL (https://github.com/kernelci/kernelci-core.git)
   URL of the kernelci-core repository
 KCI_CORE_BRANCH (master)
@@ -221,7 +223,7 @@ def buildKernel(kdir, kci_core) {
     def output = "${kdir}/build-${params.ARCH}-${params.BUILD_ENVIRONMENT}"
     dir(kci_core) {
         sh(script: "rm -f ${env._BMETA_JSON}")
-        sh(script: "rm -f ${env._DTBS_JSON}")
+        sh(script: "rm -f ${env._ARTIFACTS_JSON}")
 
         sh(script: """\
 for d in \$(find ${kdir} -name "build-*" -type d); do
@@ -229,7 +231,7 @@ for d in \$(find ${kdir} -name "build-*" -type d); do
 done
 """)
 
-        sh(script:"""\
+        sh(script: """\
 ./kci_build \
 generate_defconfig_fragments \
 --defconfig=${params.DEFCONFIG} \
@@ -242,24 +244,58 @@ expand_fragments \
 --defconfig=${params.DEFCONFIG} \
 """, returnStdout: true).trim()
 
-        sh(script:"""\
+        sh(script: """\
 ./kci_build \
-build_kernel \
+init_bmeta \
 --kdir=${kdir} \
---defconfig=${expanded_defconfig} \
+--output=${output} \
+--tree-name=${params.KERNEL_TREE} \
+--tree-url=${params.KERNEL_URL} \
+--install \
+--branch=${params.KERNEL_BRANCH} \
 --arch=${params.ARCH} \
 --build-env=${params.BUILD_ENVIRONMENT} \
---output=${output} \
 """)
 
         sh(script: """\
 ./kci_build \
-install_kernel \
+make_config \
 --kdir=${kdir} \
---tree-name=${params.KERNEL_TREE} \
---tree-url=${params.KERNEL_URL} \
---branch=${params.KERNEL_BRANCH} \
 --output=${output} \
+--install \
+--defconfig=${expanded_defconfig} \
+""")
+
+        sh(script: """\
+./kci_build \
+make_kernel \
+--kdir=${kdir} \
+--output=${output} \
+--install \
+""")
+
+        sh(script: """\
+./kci_build \
+make_modules \
+--kdir=${kdir} \
+--output=${output} \
+--install \
+""")
+
+        sh(script: """\
+./kci_build \
+make_dtbs \
+--kdir=${kdir} \
+--output=${output} \
+--install \
+""")
+
+        sh(script: """\
+./kci_build \
+make_kselftest \
+--kdir=${kdir} \
+--output=${output} \
+--install \
 """)
 
         withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
@@ -270,12 +306,14 @@ push_kernel \
 --kdir=${kdir} \
 --db-token=${SECRET} \
 --api=${params.KCI_API_URL} \
+--db-config=${KCI_DB_CONFIG} \
+--output=${output} \
 """)
         }
 
-        dir("${kdir}/_install_") {
+        dir("${output}/_install_") {
             stash(name: env._BMETA_JSON, includes: env._BMETA_JSON)
-            stash(name: env._DTBS_JSON, includes: env.DTBS_JSON)
+            stash(name: env._ARTIFACTS_JSON, includes: env.ARTIFACTS_JSON)
         }
     }
 }
@@ -325,11 +363,11 @@ def submitJob(kci_core, describe, hook) {
     dir(kci_core) {
         sh(script: """\
 rm -f ${env._BMETA_JSON} \
-rm -f ${env._DTBS_JSON} \
+rm -f ${env._ARTIFACTS_JSON} \
 rm -f ${env._LAB_JSON} \
 """)
         unstash(env._BMETA_JSON)
-        unstash(env._DTBS_JSON)
+        unstash(env._ARTIFACTS_JSON)
         unstash(env._LAB_JSON)
 
         def egg_cache = eggCache()
@@ -341,10 +379,10 @@ rm -f ${env._LAB_JSON} \
             sh(script: """ \
 ./kci_test \
 generate \
---bmeta-json=${env._BMETA_JSON} \
---dtbs-json=${env._DTBS_JSON} \
---lab-json=${env._LAB_JSON} \
+--install-path=. \
 --storage=${params.KCI_STORAGE_URL} \
+--db-config=${KCI_DB_CONFIG} \
+--lab-json=${env._LAB_JSON} \
 --lab-config=${params.LAB} \
 --user=kernel-ci \
 --lab-token=${SECRET} \
@@ -700,7 +738,7 @@ def bisection(kci_core, kdir, checks) {
 node("docker && bisection") {
     /* Global pipeline constants */
     env._BMETA_JSON = "bmeta.json"
-    env._DTBS_JSON = "dtbs.json"
+    env._ARTIFACTS_JSON = "artifacts.json"
     env._LAB_JSON = "lab-info.json"
 
     def j = new Job()
