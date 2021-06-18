@@ -224,7 +224,7 @@ def buildKernel(kdir, kci_core) {
     dir(kci_core) {
         sh(script: "rm -f ${env._BMETA_JSON}")
         sh(script: "rm -f ${env._ARTIFACTS_JSON}")
-        sh(script: "rm -f ${env._ARTIFACTS_YAML}")
+        sh(script: "rm -f ${env._ARTIFACTS_PICKLE}")
 
         sh(script: """\
 for d in \$(find ${kdir} -name "build-*" -type d); do
@@ -318,9 +318,9 @@ push_kernel \
              * will stash the list of files from artifacts.json rather than
              * just the json file. */
             sh(script: """\
-python3 -c \"import json; import yaml; d=json.load(open('artifacts.json')); yaml.dump(d, open('artifacts.yaml', 'w'))\"
+python3 -c \"import json; import pickle; pickle.dump(json.load(open('artifacts.json')), open('artifacts.pickle', 'wb'))\"
 """)
-            stash(name: env._ARTIFACTS_YAML, includes: env.ARTIFACTS_YAML)
+            stash(name: env._ARTIFACTS_PICKLE, includes: env.ARTIFACTS_PICKLE)
         }
     }
 }
@@ -371,16 +371,16 @@ def submitJob(kci_core, describe, hook) {
         sh(script: """\
 rm -f ${env._BMETA_JSON} \
 rm -f ${env._ARTIFACTS_JSON} \
-rm -f ${env._ARTIFACTS_YAML} \
+rm -f ${env._ARTIFACTS_PICKLE} \
 rm -f ${env._LAB_JSON} \
 """)
         unstash(env._BMETA_JSON)
-        unstash(env._ARTIFACTS_YAML)
+        unstash(env._ARTIFACTS_PICKLE)
         unstash(env._LAB_JSON)
 
         /* Convert YAML to JSON now */
         sh(script: """\
-python3 -c \"import json; import yaml; d=yaml.load(open('artifacts.yaml')); json.dump(d, open('artifacts.json', 'w'))\"
+python3 -c \"import json; import pickle; json.dump(pickle.load(open('artifacts.pickle', 'rb')), open('artifacts.json', 'w'))\"
 """)
 
         def egg_cache = eggCache()
@@ -752,7 +752,7 @@ node("docker && bisection") {
     /* Global pipeline constants */
     env._BMETA_JSON = "bmeta.json"
     env._ARTIFACTS_JSON = "artifacts.json"
-    env._ARTIFACTS_YAML = "artifacts.yaml"
+    env._ARTIFACTS_PICKLE = "artifacts.pickle"
     env._LAB_JSON = "lab-info.json"
 
     def j = new Job()
