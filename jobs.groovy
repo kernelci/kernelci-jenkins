@@ -381,3 +381,47 @@ rm -rf output
 """)
     }
 }
+
+matrixJob('buildroot-staging') {
+  logRotator {
+    daysToKeep(7)
+    numToKeep(100)
+  }
+  scm {
+    git {
+      remote {
+        url('https://github.com/kernelci/buildroot.git')
+      }
+      branch('staging.kernelci.org')
+    }
+  }
+  wrappers {
+      credentialsBinding {
+          string('API_TOKEN', KCI_API_TOKEN_ID)
+      }
+  }
+  parameters {
+    stringParam('API', KCI_API_URL, 'URL of the KernelCI backend API.')
+    stringParam('STORAGE', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
+  }
+  axes {
+      label('label', 'buildroot')
+      text('ARCH', [
+          'arc', 'armeb', 'armel', 'arm64', 'arm64be', 'mipsel', 'riscv', 'x86'
+      ])
+      text('FRAG', 'baseline')
+  }
+  steps {
+    shell("""
+#!/bin/bash
+
+set -e
+
+rm -rf kernelci-jenkins
+git clone --depth 1 -b staging.kernelci.org ${KCI_JENKINS_URL}
+export PATH=\$PWD/kernelci-jenkins/scripts:\$PATH
+rm -rf output
+./kernelci-jenkins/scripts/buildroot-builder.sh \$ARCH \$FRAG
+""")
+    }
+}
