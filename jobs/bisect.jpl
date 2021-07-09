@@ -436,7 +436,7 @@ def runTest(kci_core, describe, expected=0, runs=0) {
     if (!runs)
         runs = params.TEST_RUNS.toInteger()
 
-    def status = null
+    def status = 0
 
     for (int i = 1; i <= runs; i++) {
         echo "Run ${i} / ${runs}"
@@ -454,7 +454,7 @@ def runTest(kci_core, describe, expected=0, runs=0) {
                 break
         }
 
-        if (status != expected)
+        if (status)
             break
     }
 
