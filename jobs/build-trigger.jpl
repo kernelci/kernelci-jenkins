@@ -350,7 +350,17 @@ node("docker && build-trigger") {
                 j.cloneKciCore(
                     kci_core, params.KCI_CORE_URL, params.KCI_CORE_BRANCH)
             }
+        }
 
+        if (params.ALLOW_REBUILD != true) {
+            if (configAlreadyBuilt(params.BUILD_CONFIG, kci_core)) {
+                print("Revision already built, aborting")
+                currentBuild.result = 'ABORTED'
+                return
+            }
+        }
+
+        stage("Labs") {
             sh(script: "rm -rf ${labs_info}; mkdir -p ${labs_info}")
 
             dir(kci_core) {
@@ -397,14 +407,6 @@ get_lab_info \
 
             dir(labs_info) {
                 archiveArtifacts("*.json")
-            }
-        }
-
-        if (params.ALLOW_REBUILD != true) {
-            if (configAlreadyBuilt(params.BUILD_CONFIG, kci_core)) {
-                print("Revision already built, aborting")
-                currentBuild.result = 'ABORTED'
-                return
             }
         }
 
