@@ -102,7 +102,7 @@ node("debos && docker") {
         inside(" --privileged --device /dev/kvm ") {
 
         stage("Build") {
-            timeout(time: 4, unit: 'HOURS') {
+            timeout(time: 8, unit: 'HOURS') {
 	        build(config, arch, pipeline_version, kci_core)
             }
         }
