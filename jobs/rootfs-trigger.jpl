@@ -68,13 +68,14 @@ ${cli_opts}
 }
 
 
-def buildRootfsStep(job, config ,arch) {
+def buildRootfsStep(job, config ,arch, rootfs_type) {
     def pipeline_version = VersionNumber(
         versionNumberString: '${BUILD_DATE_FORMATTED,"yyyyMMdd"}.${BUILDS_TODAY_Z}')
 
     def str_params = [
         'ROOTFS_CONFIG': config,
         'ROOTFS_ARCH': arch,
+        'ROOTFS_TYPE' : rootfs_type,
         'PIPELINE_VERSION':pipeline_version,
         'KCI_CORE_URL': "${params.KCI_CORE_URL}",
         'KCI_CORE_BRANCH': "${params.KCI_CORE_BRANCH}",
@@ -95,6 +96,7 @@ node("docker && build-trigger") {
     def kci_core = "${env.WORKSPACE}/kernelci-core"
     def docker_image = "${params.DOCKER_BASE}debos"
     def configs = []
+    def rootfs_type = "${params.ROOTFS_TYPE}"
 
     print("""\
     Config:    ${params.ROOTFS_CONFIG}
@@ -126,7 +128,7 @@ node("docker && build-trigger") {
                 print(step_name)
 
                 builds[step_name] = buildRootfsStep(
-                    "rootfs-builder", config_name, arch)
+                    "rootfs-builder", config_name, arch, rootfs_type)
 
                 i += 1
             }
