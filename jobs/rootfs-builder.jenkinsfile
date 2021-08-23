@@ -1,0 +1,137 @@
+#!/usr/bin/env groovy
+
+kci_core_url = "${env.KCI_CORE_URL}"
+kci_core_branch = "${env.KCI_CORE_BRANCH}"
+rootfs_arch = "${params.ROOTFS_ARCH}"
+rootfs_config = "${params.ROOTFS_CONFIG}"
+rootfs_type = "${params.ROOTFS_TYPE}"
+docker_image = " "
+
+def configs = []
+
+println "------------------------------------------------------------------------------------"
+println "Config: ${params.ROOTFS_CONFIG} CPU arch: ${params.ROOTFS_ARCH} Container: ${docker_image}"
+println "------------------------------------------------------------------------------------"
+
+pipeline {
+
+  options {
+    timestamps()
+  }
+
+  agent {
+    label 'debos && docker'
+  }
+
+ environment {
+    pipeline_version = VersionNumber(versionNumberString: '${BUILD_DATE_FORMATTED,"yyyyMMdd"}.${BUILDS_TODAY_Z}')
+  }
+
+
+  stages {
+    stage('Init') {
+        steps {
+            git branch: '${kci_core_branch}', url: '${kci_core_url}'
+            script {  
+		     if (!rootfs_config || !rootfs_arch || !pipeline_version) {
+		              print("Invalid parameters")
+		              currentBuild.result = 'ABORTED'
+		              return
+		          }
+	              if ("${rootfs_type}" == "buildroot") {
+        	          docker_image = "${params.DOCKER_BASE}buildroot"
+	              } else if ("${rootfs_type}" == "debos") {
+        	          docker_image = "${params.DOCKER_BASE}debos"
+              		}
+            }
+            }
+    }
+
+    stage("Build") {
+        agent {
+            docker {
+            args ' --privileged  --device=/dev/kvm'
+            image "${docker_image}"
+            reuseNode true
+            }
+        }
+        steps {
+                script {
+                    sh " echo ${kci_core_url} ${kci_core_branch} ${rootfs_arch} ${WORKSPACE} "
+                    if (rootfs_type == "buildroot") {
+			        timeout(time: 8, unit: 'HOURS') {
+                  	        build_buildroot(rootfs_config, rootfs_arch, pipeline_version, ".")
+                    	      }
+            	    } else {
+	                          timeout(time: 8, unit: 'HOURS') {
+        	                  build_debos(rootfs_config, rootfs_arch, pipeline_version, ".")
+      	 	                  }
+            	    }
+                }
+            }
+    }
+
+     stage("Upload") {
+         steps {
+              script {
+                timeout(time: 30, unit: 'MINUTES') {
+                upload(rootfs_config, pipeline_version, ".");
+                }
+              }
+         }
+        } 
+    }
+
+  post {
+    cleanup {
+      deleteDir()
+    }
+  }
+}
+
+def build_buildroot(config, arch, pipeline_version, kci_core) {
+    dir(kci_core) {
+        sh(script: """\
+git clone https://github.com/kernelci/buildroot
+./kci_rootfs \
+build \
+--rootfs-config ${config} \
+--arch ${arch} \
+--data-path buildroot
+mkdir -p ${pipeline_version}
+mv buildroot/output/images/* ${pipeline_version}
+""")
+    }
+}
+
+def build_debos(config, arch, pipeline_version, kci_core) {
+    dir(kci_core) {
+        sh(script: """\
+pwd
+ls -l 
+./kci_rootfs \
+build \
+--rootfs-config ${config} \
+--arch ${arch} \
+--data-path config/rootfs/debos
+mkdir -p ${pipeline_version}
+mv config/rootfs/debos/${config}/* ${pipeline_version}
+""")
+    }
+}
+
+def upload(config, pipeline_version, kci_core) {
+    dir(kci_core) {
+        withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
+                                variable: 'API_TOKEN')]) {
+            sh(script: """\
+./kci_rootfs \
+upload \
+--db-token ${API_TOKEN} \
+--api ${params.KCI_API_URL} \
+--rootfs-dir ${pipeline_version} \
+--upload-path images/rootfs/debian/${config}/${pipeline_version}
+""")
+        }
+    }
+}

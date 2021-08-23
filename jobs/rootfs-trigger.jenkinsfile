@@ -1,0 +1,107 @@
+#!/usr/bin/env groovy
+
+kci_core_url = "${env.KCI_CORE_URL}"
+kci_core_branch = "${env.KCI_CORE_BRANCH}"
+docker_image = "${env.DOCKER_BASE}debos"
+rootfs_arch = "${params.ROOTFS_ARCH}"
+rootfs_config = "${params.ROOTFS_CONFIG}"
+rootfs_type = "${params.ROOTFS_TYPE}"
+
+def configs = []
+
+println "------------------------------------------------------------------------------------"
+println "Config: ${params.ROOTFS_CONFIG} CPU arch: ${params.ROOTFS_ARCH} Container: ${docker_image}"
+println "------------------------------------------------------------------------------------"
+
+pipeline {
+
+  options {
+    timestamps()
+  }
+  agent {
+    label 'debos && docker'
+  }
+  
+ environment {
+    pipeline_version = VersionNumber(versionNumberString: '${BUILD_DATE_FORMATTED,"yyyyMMdd"}.${BUILDS_TODAY_Z}')
+  }
+
+  stages {
+    stage('Init') {
+        steps {
+            git branch: '${kci_core_branch}', url: '${kci_core_url}'
+        }
+    }
+
+    stage("Configs") {
+        steps {
+            script {  sh "echo ${kci_core_url} ${kci_core_branch} ${rootfs_arch}" }
+            listVariants(".", configs, "${rootfs_config}", "${rootfs_arch}")
+        }
+    }
+        
+   stage("Build") {
+       steps {
+       script {
+        def builds = [:]
+        def i = 0
+
+        for (item in configs) {
+              def config_name = item[0]
+              def arch = item[1]
+              def step_name = "${i} ${config_name} ${arch}"
+              print(step_name)
+
+              builds[step_name] = {
+                   build job: "test-rootfs-builder", parameters: [
+                         string(name: 'ROOTFS_CONFIG', value: "${ROOTFS_CONFIG}"),
+                         string(name: 'ROOTFS_ARCH', value: "${arch}"),
+                         string(name: 'ROOTFS_TYPE', value: "${rootfs_type}"),
+                         string(name: 'KCI_CORE_URL', value: "${kci_core_url}"),
+                         string(name: 'KCI_CORE_BRANCH', value: "${kci_core_branch}"),
+                         string(name: 'PIPELINE_VERSION', value: "${pipeline_version}")
+                    ]
+              }
+              i += 1
+         }
+        parallel builds
+       }
+       }
+    }   
+  }
+
+  post {
+    cleanup {
+      deleteDir()
+    }
+  }
+}
+
+def listVariants(kci_core, config_list, rootfs_config, rootfs_arch) {
+    def cli_opts = ' '
+
+    if (rootfs_config) {
+        cli_opts += " --rootfs-config ${rootfs_config}"
+    }
+
+    if (rootfs_arch) {
+        cli_opts += " --arch ${rootfs_arch}"
+    }
+
+    dir(kci_core) {
+        def rootfs_config_list_raw = sh(script: """\
+./kci_rootfs \
+list_variants \
+${cli_opts}
+""", returnStdout: true).trim()
+
+        def rootfs_config_list =  rootfs_config_list_raw.tokenize('\n')
+
+        for (String rootfs_config_raw: rootfs_config_list) {
+            def data = rootfs_config_raw.tokenize(' ')
+            def config = data[0]
+            def arch = data[1]
+            config_list.add([config, arch])
+        }
+    }
+}
