@@ -172,9 +172,9 @@ fi
         curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'", "build_report": 1, "send_to": ["kernel-build-reports@lists.linaro.org", "kernelci-results@groups.io"], "format": ["txt", "html"], "delay": 10}' ${API}/send
         curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'", "build_report": 1, "send_to": ["linux-next@vger.kernel.org"], "format": ["txt"], "delay": 10}' ${API}/send
         curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'",  "report_type": "test", "plan": "baseline", "send_to": ["linux-next@vger.kernel.org", "kernel-build-reports@lists.linaro.org", "kernelci-results@groups.io"], "format": ["txt"], "delay": 12600}' ${API}/send
-        echo "Sending build results to clang-built-linux for master only"
+        echo "Sending build results to LLVM Linux for master only"
         if [ "$BRANCH" == "master" ]; then
-          curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'", "build_report": 1, "send_to": ["clang-built-linux@googlegroups.com"], "format": ["txt"], "delay": 10}' ${API}/send
+          curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'", "build_report": 1, "send_to": ["llvm@lists.linux.dev"], "format": ["txt"], "delay": 10}' ${API}/send
         fi
     elif [ "$TREE_NAME" == "omap" ]; then
         echo "Sending results to Tony Lindgren"
