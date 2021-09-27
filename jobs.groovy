@@ -239,7 +239,6 @@ pipelineJob('rootfs-build-trigger') {
     stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the rootfs build images.')
     stringParam('ROOTFS_CONFIG','','Name of the rootfs configuration, all rootfs will be built by default.')
     stringParam('ROOTFS_ARCH','','Name of the rootfs arch config, all given arch will be built by default.')
-    stringParam('ROOTFS_TYPE','debos','Name of the rootfs type which can be debos or buildroot.')
   }
 }
 
