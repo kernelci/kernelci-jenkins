@@ -37,6 +37,24 @@ ROOTFS_ARCH
 @Library('kernelci') _
 import org.kernelci.util.Job
 
+def listBuildrootConfigs(kci_core, buildroot_config_list) {
+    dir(kci_core) {
+        def rootfs_type_list_raw = sh(script: """\
+./kci_rootfs \
+list_configs \
+--rootfs-type buildroot
+""", returnStdout: true).trim()
+
+        def rootfs_type_list =  rootfs_type_list_raw.tokenize('\n')
+
+        for (String rootfs_type_raw: rootfs_type_list) {
+            def data = rootfs_type_raw.tokenize(' ')
+            def config = data[0]
+            buildroot_config_list.add(config)
+        }
+    }
+}
+
 
 def listVariants(kci_core, config_list, rootfs_config, rootfs_arch) {
     def cli_opts = ' '
@@ -94,9 +112,9 @@ def buildRootfsStep(job, config ,arch, rootfs_type) {
 node("docker && build-trigger") {
     def j = new Job()
     def kci_core = "${env.WORKSPACE}/kernelci-core"
-    def docker_image = "${params.DOCKER_BASE}debos"
+    def docker_image = "${params.DOCKER_BASE}build-base"
     def configs = []
-    def rootfs_type = "${params.ROOTFS_TYPE}"
+    def buildroot_configs = []
 
     print("""\
     Config:    ${params.ROOTFS_CONFIG}
@@ -117,6 +135,11 @@ node("docker && build-trigger") {
                          params.ROOTFS_ARCH)
         }
 
+        stage("BuildRootConfigs") {
+            listBuildrootConfigs(kci_core, buildroot_configs)
+            print(buildroot_configs)
+        }
+
         stage("Build") {
             def builds = [:]
             def i = 0
@@ -124,7 +147,12 @@ node("docker && build-trigger") {
             for (item in configs) {
                 def config_name = item[0]
                 def arch = item[1]
-                def step_name = "${i} ${config_name} ${arch}"
+                def rootfs_type = "debos"
+
+                if (config_name in buildroot_configs) {
+                   rootfs_type = "buildroot"
+	        }
+                def step_name = "${i} ${config_name} ${arch} ${rootfs_type}"
                 print(step_name)
 
                 builds[step_name] = buildRootfsStep(
