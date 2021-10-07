@@ -83,7 +83,7 @@ node("docker" && params.NODE_LABEL) {
     Compiler:  ${params.BUILD_ENVIRONMENT}
     K8S ctx:   ${k8s_context}""")
 
-    docker_image = "${params.DOCKER_BASE}build-k8s"
+    docker_image = "${params.DOCKER_BASE}k8s"
     j.dockerPullWithRetry(docker_image).inside("-v $HOME/.kube:/.kube -v $HOME/.config/gcloud:/.config/gcloud -v $HOME/.azure:/.azure") {
         j.cloneKciCore(kci_core, params.KCI_CORE_URL, params.KCI_CORE_BRANCH)
         build_env_docker_image = j.dockerImageName(
