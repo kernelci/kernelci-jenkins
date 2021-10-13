@@ -90,7 +90,7 @@ def buildRootfsStep(job, config ,arch) {
 }
 
 
-node("docker && build-trigger") {
+node("docker && rootfs-trigger") {
     def j = new Job()
     def kci_core = "${env.WORKSPACE}/kernelci-core"
     def docker_image = "${params.DOCKER_BASE}debos"
