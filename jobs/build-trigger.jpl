@@ -114,13 +114,6 @@ update_last_commit \
 --db-token=${SECRET} \
 """)
 
-            sh(script: """\
-./kci_build \
-generate_fragments \
---build-config=${config} \
---kdir=${kdir} \
-""")
-
             opts['tarball_url'] = sh(script: """\
 ./kci_build \
 push_tarball \
