@@ -129,6 +129,13 @@ push_tarball \
 
 def listConfigs(config, kci_core, kdir, config_list) {
     dir(kci_core) {
+            sh(script: """\
+./kci_build \
+generate_fragments \
+--build-config=${config} \
+--kdir=${kdir} \
+""")
+
         def kernel_config_list_raw = sh(script: """\
 ./kci_build \
 list_kernel_configs \
