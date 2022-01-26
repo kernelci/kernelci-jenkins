@@ -215,7 +215,7 @@ pipelineJob('rootfs-build-trigger') {
       lightweight(true)
       scm {
         git {
-          branch(KCI_JENKINS_BRANCH)
+          branch('main')
           remote {
             url(KCI_JENKINS_URL)
           }
@@ -248,7 +248,7 @@ pipelineJob('rootfs-builder') {
       lightweight(true)
       scm {
         git {
-          branch(KCI_JENKINS_BRANCH)
+          branch('main')
           remote {
             url(KCI_JENKINS_URL)
           }
