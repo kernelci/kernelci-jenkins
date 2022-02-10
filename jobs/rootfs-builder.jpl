@@ -102,20 +102,14 @@ node("debos && docker") {
     def config = "${params.ROOTFS_CONFIG}"
     def arch = "${params.ROOTFS_ARCH}"
     def pipeline_version =  "${params.PIPELINE_VERSION}"
-    def docker_image = " "
     def rootfs_type = "${params.ROOTFS_TYPE}"
-
-    if (rootfs_type == "buildroot") {
-        docker_image = "${params.DOCKER_BASE}buildroot"
-    } else if (rootfs_type == "debos") {
-        docker_image = "${params.DOCKER_BASE}debos"
-    }
+    def docker_image = "${params.DOCKER_BASE}${rootfs_type}"
 
     print("""\
     Config:    ${config}
     CPU arch:  ${arch}
     Pipeline:  ${pipeline_version}
-    Container: ${docker_image}""")
+    Docker:    ${docker_image}""")
 
     if (!config || !arch || !pipeline_version) {
         print("Invalid parameters")
