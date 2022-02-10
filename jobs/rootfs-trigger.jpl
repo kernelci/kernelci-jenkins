@@ -37,25 +37,6 @@ ROOTFS_ARCH
 @Library('kernelci') _
 import org.kernelci.util.Job
 
-def listBuildrootConfigs(kci_core, buildroot_config_list) {
-    dir(kci_core) {
-        def rootfs_type_list_raw = sh(script: """\
-./kci_rootfs \
-list_configs \
---rootfs-type buildroot
-""", returnStdout: true).trim()
-
-        def rootfs_type_list =  rootfs_type_list_raw.tokenize('\n')
-
-        for (String rootfs_type_raw: rootfs_type_list) {
-            def data = rootfs_type_raw.tokenize(' ')
-            def config = data[0]
-            buildroot_config_list.add(config)
-        }
-    }
-}
-
-
 def listVariants(kci_core, config_list, rootfs_config, rootfs_arch) {
     def cli_opts = ' '
 
@@ -80,7 +61,8 @@ ${cli_opts}
             def data = rootfs_config_raw.tokenize(' ')
             def config = data[0]
             def arch = data[1]
-            config_list.add([config, arch])
+            def type = data[2]
+            config_list.add([config, arch, type])
         }
     }
 }
@@ -114,7 +96,6 @@ node("docker && rootfs-trigger") {
     def kci_core = "${env.WORKSPACE}/kernelci-core"
     def docker_image = "${params.DOCKER_BASE}build-base"
     def configs = []
-    def buildroot_configs = []
 
     print("""\
     Config:    ${params.ROOTFS_CONFIG}
@@ -135,11 +116,6 @@ node("docker && rootfs-trigger") {
                          params.ROOTFS_ARCH)
         }
 
-        stage("BuildRootConfigs") {
-            listBuildrootConfigs(kci_core, buildroot_configs)
-            print(buildroot_configs)
-        }
-
         stage("Build") {
             def builds = [:]
             def i = 0
@@ -147,11 +123,8 @@ node("docker && rootfs-trigger") {
             for (item in configs) {
                 def config_name = item[0]
                 def arch = item[1]
-                def rootfs_type = "debos"
+                def rootfs_type = item[2]
 
-                if (config_name in buildroot_configs) {
-                   rootfs_type = "buildroot"
-	        }
                 def step_name = "${i} ${config_name} ${arch} ${rootfs_type}"
                 print(step_name)
 
