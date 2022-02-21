@@ -44,31 +44,15 @@ PIPELINE_VERSION
 @Library('kernelci') _
 import org.kernelci.util.Job
 
-def build_buildroot(config, arch, pipeline_version, kci_core) {
-    dir(kci_core) {
-        sh(script: """\
-git clone https://github.com/kernelci/buildroot
-./kci_rootfs \
-build \
---rootfs-config ${config} \
---arch ${arch} \
---data-path buildroot
-mkdir -p ${pipeline_version}/${arch}
-mv buildroot/output/images/* ${pipeline_version}/${arch}
-""")
-    }
-}
-
-def build_debos(config, arch, pipeline_version, kci_core) {
+def build(config, arch, pipeline_version, kci_core, rootfs_type) {
     dir(kci_core) {
         sh(script: """\
 ./kci_rootfs \
 build \
 --rootfs-config ${config} \
 --arch ${arch} \
---data-path config/rootfs/debos
-mkdir -p ${pipeline_version}
-mv config/rootfs/debos/${config}/* ${pipeline_version}
+--data-path config/rootfs/${rootfs_type} \
+--output ${pipeline_version}
 """)
     }
 }
@@ -89,7 +73,7 @@ def upload(config, pipeline_version, kci_core, rootfs_type, arch) {
 upload \
 --db-token ${API_TOKEN} \
 --api ${params.KCI_API_URL} \
---rootfs-dir ${pipeline_version} \
+--rootfs-dir ${pipeline_version}/_install_/${config} \
 --upload-path ${rootfs_upload_path}
 """)
         }
@@ -124,19 +108,11 @@ node("debos && docker") {
     j.dockerPullWithRetry(docker_image).
         inside(" --privileged --device /dev/kvm ") {
 
-    if (rootfs_type == "buildroot") {
         stage("Build") {
             timeout(time: 8, unit: 'HOURS') {
-	        build_buildroot(config, arch, pipeline_version, kci_core)
+	        build(config, arch, pipeline_version, kci_core, rootfs_type)
             }
         }
-    } else if (rootfs_type == "debos") {
-        stage("Build") {
-            timeout(time: 8, unit: 'HOURS') {
-	        build_debos(config, arch, pipeline_version, kci_core)
-            }
-        }
-     }
 
         stage("Upload") {
             timeout(time: 30, unit: 'MINUTES') {
