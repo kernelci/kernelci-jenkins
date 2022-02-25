@@ -14,6 +14,7 @@ def KCI_BISECTION_TREES_WHITELIST = System.getenv("KCI_BISECTION_TREES_WHITELIST
 def KCI_BISECTION_LABS_WHITELIST = System.getenv("KCI_BISECTION_LABS_WHITELIST")
 def KCI_MONITOR_CRON = System.getenv("KCI_MONITOR_CRON")
 def KCI_JENKINS_BRANCH = System.getenv("KCI_JENKINS_BRANCH")
+def KCI_JENKINS_ROOTFS_BRANCH = System.getenv("KCI_JENKINS_ROOFS_BRANCH")
 def KCI_JENKINS_URL = System.getenv("KCI_JENKINS_URL")
 
 pipelineJob('kernel-tree-monitor') {
@@ -215,7 +216,7 @@ pipelineJob('rootfs-build-trigger') {
       lightweight(true)
       scm {
         git {
-          branch('main')
+          branch(KCI_JENKINS_ROOTFS_BRANCH)
           remote {
             url(KCI_JENKINS_URL)
           }
@@ -248,7 +249,7 @@ pipelineJob('rootfs-builder') {
       lightweight(true)
       scm {
         git {
-          branch('main')
+          branch(KCI_JENKINS_ROOTFS_BRANCH)
           remote {
             url(KCI_JENKINS_URL)
           }
