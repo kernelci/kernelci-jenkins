@@ -345,3 +345,84 @@ pipelineJob('lava-bisection') {
     stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the build images.')
   }
 }
+
+/* Chrome OS jobs */
+
+folder('chromeos') {
+    displayName('chromeos')
+    description('Jobs for chromeos.kernelci.org')
+}
+
+pipelineJob('chromeos/kernel-tree-monitor') {
+  definition {
+    cpsScm {
+      lightweight(true)
+      scm {
+        git {
+          branch('chromeos.kernelci.org')
+          remote {
+            url(KCI_JENKINS_URL)
+          }
+        }
+      }
+      scriptPath('jobs/monitor.jpl')
+    }
+    if (KCI_MONITOR_CRON) {
+      triggers {
+        cron(KCI_MONITOR_CRON)
+      }
+    }
+  }
+  logRotator {
+    daysToKeep(7)
+    numToKeep(200)
+  }
+  parameters {
+    stringParam('KCI_API_URL', 'https://api.chromeos.kernelci.org', 'URL of the KernelCI back-end API.')
+    stringParam('KCI_API_TOKEN_ID', 'kci-api-token-chromeos', 'Identifier of the KernelCI backend API token stored in Jenkins.')
+    stringParam('KCI_STORAGE_CONFIG', 'chromeos.kernelci.org', 'KernelCI storage configuration.')
+    stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
+    stringParam('KCI_CORE_BRANCH', 'chromeos.kernelci.org', 'Name of the branch to use in the kernelci-core repository.')
+    stringParam('DOCKER_BASE', 'kernelci/cros-', 'Dockerhub base address used for the build images.')
+    stringParam('CONFIG_LIST', 'chromeos-next', 'List of build configs to check instead of all the ones in build-configs.yaml.')
+  }
+}
+
+pipelineJob('chromeos/kernel-build-trigger') {
+  definition {
+    cpsScm {
+      lightweight(true)
+      scm {
+        git {
+          branch('chromeos.kernelci.org')
+          remote {
+            url(KCI_JENKINS_URL)
+          }
+        }
+      }
+      scriptPath('jobs/build-trigger.jpl')
+    }
+  }
+  configure { project ->
+    project / 'properties' / 'org.jenkinsci.plugins.workflow.job.properties.DisableResumeJobProperty' {
+      'switch'('on')
+    }
+  }
+  logRotator {
+    daysToKeep(7)
+    numToKeep(48)
+  }
+  parameters {
+    stringParam('BUILD_CONFIG', '', 'Name of the build configuration.')
+    booleanParam('PUBLISH', true, 'Publish build results via the KernelCI backend API')
+    booleanParam('EMAIL', true, 'Send build results via email')
+    stringParam('LABS_WHITELIST', 'lab-collabora-staging lab-collabora', 'List of labs to include in the tests, all labs will be tested by default.')
+    stringParam('KCI_API_TOKEN_ID', 'kci-api-token-chromeos', 'Identifier of the KernelCI backend API token stored in Jenkins.')
+    stringParam('KCI_API_URL', 'https://api.chromeos.kernelci.org', 'URL of the KernelCI Backend API')
+    stringParam('KCI_STORAGE_CONFIG', 'chromeos.kernelci.org', 'KernelCI storage config.')
+    stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
+    stringParam('KCI_CORE_BRANCH', 'chromeos.kernelci.org', 'Name of the branch to use in the kernelci-core repository.')
+    stringParam('DOCKER_BASE', 'kernelci/cros-', 'Dockerhub base address used for the build images.')
+    booleanParam('ALLOW_REBUILD', false, 'Allow building the same revision again.')
+  }
+}
