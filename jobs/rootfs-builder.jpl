@@ -45,7 +45,16 @@ PIPELINE_VERSION
 import org.kernelci.util.Job
 
 def build(config, arch, pipeline_version, kci_core, rootfs_type) {
+/*
+   Diagnostic commands to troubleshoot ChromiumOS SDK failures
+   id is expected to be 996
+   id after sudo expected to be root (to check if sudo works)
+   df -h to check disk space, as SDK require around 200GB free space
+*/
     dir(kci_core) {
+        sh 'id'
+        sh 'sudo id'
+        sh 'df -h'
         sh(script: """\
 ./kci_rootfs \
 build \
@@ -106,7 +115,7 @@ node("debos && docker") {
     }
 
     j.dockerPullWithRetry(docker_image).
-        inside(" --privileged --device /dev/kvm ") {
+        inside(" --privileged --device /dev/kvm -v /dev:/dev") {
 
         stage("Build") {
             timeout(time: 8, unit: 'HOURS') {
@@ -114,10 +123,28 @@ node("debos && docker") {
             }
         }
 
+        stage("scp") {
+            sshagent(credentials : ['jenkins-chromeos-storage-private-key']) {
+                sh(script: """\
+scp \
+-o StrictHostKeyChecking=no \
+-P 22022 \
+-r \
+kernelci-core/${pipeline_version}/_install_/* \
+chromeos@storage.chromeos.kernelci.org:\
+~/images/rootfs/chromeos/
+"""
+                  )
+            }
+        }
+    }
+/* Upload stage not working, as kci_rootfs http(s) upload fails for files >1GB */
+/*
         stage("Upload") {
             timeout(time: 30, unit: 'MINUTES') {
                 upload(config, pipeline_version, kci_core, rootfs_type, arch);
             }
         }
     }
+*/
 }
