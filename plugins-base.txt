@@ -19,6 +19,7 @@ workflow-multibranch
 apache-httpcomponents-client-4-api
 ssh-credentials
 ssh-slaves
+ssh-agent
 variant
 lockable-resources
 workflow-support
