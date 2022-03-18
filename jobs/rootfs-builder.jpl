@@ -108,7 +108,7 @@ node("debos && docker") {
     }
 
     j.dockerPullWithRetry(docker_image).
-        inside(" --privileged --device /dev/kvm ") {
+        inside(" --privileged --device /dev/kvm -v /dev:/dev") {
 
         stage("Build") {
             timeout(time: 8, unit: 'HOURS') {
