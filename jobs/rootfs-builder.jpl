@@ -126,8 +126,24 @@ node("debos && docker") {
         }
 
         stage("Upload") {
-            timeout(time: 30, unit: 'MINUTES') {
-                upload(config, pipeline_version, kci_core, rootfs_type, arch);
+            sshagent(credentials : ['jenkins-chromeos-storage-private-key']) {
+                sh(script: """\
+ssh \
+-o StrictHostKeyChecking=no \
+-p 22022 \
+chromeos@storage.chromeos.kernelci.org 'mkdir -p ~/images/rootfs/chromeos/${pipeline_version} || true'
+"""
+                  )
+                sh(script: """\
+scp \
+-o StrictHostKeyChecking=no \
+-P 22022 \
+-r \
+kernelci-core/${pipeline_version}/_install_/* \
+chromeos@storage.chromeos.kernelci.org:\
+~/images/rootfs/chromeos/${pipeline_version}
+"""
+                  )
             }
         }
     }
