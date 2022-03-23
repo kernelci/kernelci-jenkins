@@ -54,9 +54,11 @@ def build(config, arch, pipeline_version, kci_core, rootfs_type) {
    id after sudo expected to be root (to check if sudo works)
    df -h to check disk space, as SDK require around 200GB free space
 */
-        sh 'id'
-        sh 'sudo id'
-        sh 'df -h'
+        if (rootfs_type == "chromiumos") {
+           sh 'id'
+           sh 'sudo id'
+           sh 'df -h'
+        }
         sh(script: """\
 ./kci_rootfs \
 build \
