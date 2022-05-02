@@ -32,6 +32,8 @@ ROOTFS_CONFIG
   Set this to limit the rootfs builds to only one configuration
 ROOTFS_ARCH
   Set this to limit the rootfs builds to only one architecture
+PIPELINE_VERSION
+  Unique string identifier for the series of rootfs build jobs
 */
 
 @Library('kernelci') _
@@ -69,8 +71,13 @@ ${cli_opts}
 
 
 def buildRootfsStep(job, config ,arch, rootfs_type) {
-    def pipeline_version = VersionNumber(
-        versionNumberString: '${BUILD_DATE_FORMATTED,"yyyyMMdd"}.${BUILDS_TODAY_Z}')
+    def pipeline_version = params.PIPELINE_VERSION;
+
+    if (!pipeline_version) {
+        pipeline_version = VersionNumber(
+            versionNumberString:
+            '${BUILD_DATE_FORMATTED,"yyyyMMdd"}.${BUILDS_TODAY_Z}')
+    }
 
     def str_params = [
         'ROOTFS_CONFIG': config,
