@@ -29,7 +29,7 @@ CONFIG_LIST
   List of build configs to check instead of all the ones in build-configs.yaml
 KCI_API_URL (https://api.kernelci.org)
   URL of the KernelCI backend API
-KCI_TOKEN_ID
+KCI_API_TOKEN_ID
   Identifier of the KernelCI backend API token stored in Jenkins
 KCI_STORAGE_URL (https://storage.kernelci.org/)
   URL of the KernelCI storage server
@@ -39,11 +39,26 @@ KCI_CORE_BRANCH (master)
   Name of the branch to use in the kernelci-core repository
 DOCKER_BASE (kernelci/)
   Dockerhub base address used for the build images
-
 */
 
 @Library('kernelci') _
 import org.kernelci.util.Job
+
+def updateLastCommit(config, commit, kci_core) {
+    dir(kci_core) {
+        withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
+                                variable: 'SECRET')]) {
+            sh(script: """\
+./kci_build \
+update_last_commit \
+--build-config=${config} \
+--commit=${commit} \
+--api=${params.KCI_API_URL} \
+--db-token=${SECRET} \
+""")
+        }
+    }
+}
 
 def checkConfig(config, kci_core) {
     def retry = 3
@@ -58,7 +73,7 @@ def checkConfig(config, kci_core) {
 check_new_commit \
 --build-config=${config} \
 --storage=${params.KCI_STORAGE_URL} \
-""", returnStdout: true)
+""", returnStdout: true).trim()
                 retry = 0
             } catch (error) {
 
@@ -79,9 +94,12 @@ check_new_commit \
 
     print("${config}: triggering build")
 
+    updateLastCommit(config, commit, kci_core)
+
     def job = "kernel-build-trigger"
     def str_params = [
         'BUILD_CONFIG': config,
+        'COMMIT_ID': commit,
     ]
     def job_params = []
     def j = new Job()

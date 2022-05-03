@@ -78,6 +78,7 @@ pipelineJob('kernel-build-trigger') {
   }
   parameters {
     stringParam('BUILD_CONFIG', '', 'Name of the build configuration.')
+    stringParam('COMMIT_ID', '', 'Git commit SHA1 at the revision of the snapshot')
     booleanParam('PUBLISH', true, 'Publish build results via the KernelCI backend API')
     booleanParam('EMAIL', true, 'Send build results via email')
     stringParam('LABS_WHITELIST', KCI_LABS_LIST, 'List of labs to include in the tests, all labs will be tested by default.')
