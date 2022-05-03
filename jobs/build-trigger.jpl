@@ -24,6 +24,8 @@
 
 BUILD_CONFIG
   Name of the build configuration
+COMMIT_ID
+  Git commit SHA1 at the revision of the snapshot
 PUBLISH (boolean)
   Publish build results via the KernelCI backend API
 EMAIL (boolean)
@@ -49,23 +51,7 @@ ALLOW_REBUILD (false)
 @Library('kernelci') _
 import org.kernelci.util.Job
 
-def configAlreadyBuilt(config, kci_core) {
-    def new_commit = null
-
-    dir(kci_core) {
-        new_commit = sh(
-        script: """\
-./kci_build \
-check_new_commit \
---build-config=${config} \
---storage=${params.KCI_STORAGE_URL} \
-""", returnStdout: true).trim()
-    }
-
-    return (new_commit == "")
-}
-
-def pushTarball(config, kci_core, mirror, kdir, opts) {
+def updateRepo(config, kci_core, mirror, kdir, opts) {
     dir(kci_core) {
         sh(script: """\
 ./kci_build \
@@ -102,18 +88,13 @@ describe \
         opts['commit'] = describe_list[0]
         opts['describe'] = describe_list[1]
         opts['describe_verbose'] = describe_list[2]
+    }
+}
 
+def pushTarball(config, kci_core, kdir, opts) {
+    dir(kci_core) {
         withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
                                 variable: 'SECRET')]) {
-            sh(script: """\
-./kci_build \
-update_last_commit \
---build-config=${config} \
---commit=${opts['commit']} \
---api=${params.KCI_API_URL} \
---db-token=${SECRET} \
-""")
-
             opts['tarball_url'] = sh(script: """\
 ./kci_build \
 push_tarball \
@@ -340,6 +321,7 @@ node("docker && build-trigger") {
 
     print("""\
     Config:    ${params.BUILD_CONFIG}
+    Commit:    ${params.COMMIT_ID}
     Container: ${docker_image}""")
 
     j.dockerPullWithRetry(docker_image).inside() {
@@ -349,14 +331,6 @@ node("docker && build-trigger") {
             timeout(time: 15, unit: 'MINUTES') {
                 j.cloneKciCore(
                     kci_core, params.KCI_CORE_URL, params.KCI_CORE_BRANCH)
-            }
-        }
-
-        if (params.ALLOW_REBUILD != true) {
-            if (configAlreadyBuilt(params.BUILD_CONFIG, kci_core)) {
-                print("Revision already built, aborting")
-                currentBuild.result = 'ABORTED'
-                return
             }
         }
 
@@ -410,8 +384,20 @@ get_lab_info \
             }
         }
 
+        stage("Repo") {
+            updateRepo(params.BUILD_CONFIG, kci_core, mirror, kdir, opts)
+        }
+
+        if (params.ALLOW_REBUILD != true) {
+            if (opts['commit'] != params.COMMIT_ID) {
+                print("Commit mismatch: ${params.COMMIT_ID} ${opts['commit']}")
+                currentBuild.result = 'ABORTED'
+                return
+            }
+        }
+
         stage("Tarball") {
-            pushTarball(params.BUILD_CONFIG, kci_core, mirror, kdir, opts)
+            pushTarball(params.BUILD_CONFIG, kci_core, kdir, opts)
         }
 
         stage("Configs") {
