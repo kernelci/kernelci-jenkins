@@ -244,7 +244,7 @@ def buildKernelStep(job, arch, defconfig, build_env, opts, labs, kci_core) {
     def node_label = "k8s"
     def parallel_builds = "4"
 
-    if (defconfig.matches(".*allmodconfig.*")) {
+    if (defconfig.matches(".*allmodconfig.*") || defconfig.matches("^gki_defconfig.*")) {
         node_label = "k8s-big"
         parallel_builds = ""
     } else if (defconfig.matches("^defconfig.*") && arch == "arm64") {
