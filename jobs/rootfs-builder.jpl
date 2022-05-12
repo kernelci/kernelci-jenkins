@@ -128,12 +128,26 @@ node("debos && docker") {
         }
 
         stage("Upload") {
+          def rootfs_type_dir = ""
+
+          switch(rootfs_type) {
+            case 'debos':
+              rootfs_type_dir = 'debian'
+              break
+
+            case 'chromiumos':
+              rootfs_type_dir = 'chromeos'
+              break
+
+            default:
+              rootfs_type_dir = rootfs_type
+          }
             sshagent(credentials : ['jenkins-chromeos-storage-private-key']) {
                 sh(script: """\
 ssh \
 -o StrictHostKeyChecking=no \
 -p 22022 \
-chromeos@storage.chromeos.kernelci.org 'mkdir -p ~/images/rootfs/chromeos/${pipeline_version} || true'
+chromeos@storage.chromeos.kernelci.org 'mkdir -p ~/images/rootfs/${rootfs_type_dir}/${config}/${pipeline_version} || true'
 """
                   )
                 sh(script: """\
@@ -141,9 +155,9 @@ scp \
 -o StrictHostKeyChecking=no \
 -P 22022 \
 -r \
-kernelci-core/${pipeline_version}/_install_/* \
+kernelci-core/${pipeline_version}/_install_/${config}/* \
 chromeos@storage.chromeos.kernelci.org:\
-~/images/rootfs/chromeos/${pipeline_version}
+~/images/rootfs/${rootfs_type_dir}/${config}/${pipeline_version}
 """
                   )
             }
