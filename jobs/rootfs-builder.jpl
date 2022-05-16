@@ -46,17 +46,19 @@ import org.kernelci.util.Job
 
 def build(config, arch, pipeline_version, kci_core, rootfs_type) {
     dir(kci_core) {
-/*
-   Diagnostic commands to troubleshoot ChromiumOS SDK failures
-   id is expected to be 996
-   id after sudo expected to be root (to check if sudo works)
-   df -h to check disk space, as SDK require around 200GB free space
-*/
+
+        /*
+          Diagnostic commands to troubleshoot ChromiumOS SDK failures
+          id is expected to be 996
+          id after sudo expected to be root (to check if sudo works)
+          df -h to check disk space, as SDK require around 200GB free space
+        */
         if (rootfs_type == "chromiumos") {
            sh 'id'
            sh 'sudo id'
            sh 'df -h'
         }
+
         sh(script: """\
 ./kci_rootfs \
 build \
@@ -130,20 +132,21 @@ node("debos && docker") {
         }
 
         stage("Upload") {
-          def rootfs_type_dir = ""
+            def rootfs_type_dir = ""
 
-          switch(rootfs_type) {
+            switch(rootfs_type) {
             case 'debos':
-              rootfs_type_dir = 'debian'
-              break
+                rootfs_type_dir = 'debian'
+                break
 
             case 'chromiumos':
-              rootfs_type_dir = 'chromeos'
-              break
+                rootfs_type_dir = 'chromeos'
+                break
 
             default:
-              rootfs_type_dir = rootfs_type
-          }
+                rootfs_type_dir = rootfs_type
+            }
+
             sshagent(credentials : ['jenkins-chromeos-storage-private-key']) {
                 sh(script: """\
 ssh \
@@ -164,5 +167,5 @@ chromeos@storage.chromeos.kernelci.org:\
                   )
             }
         }
-    }
+        }
 }
