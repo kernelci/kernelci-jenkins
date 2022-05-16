@@ -59,6 +59,17 @@ def build(config, arch, pipeline_version, kci_core, rootfs_type) {
            sh 'df -h'
         }
 
+        if (true) {
+            def output = "${pipeline_version}/_install_/${config}/"
+            print("Making fake build files in ${output}")
+            sh(script: """\
+mkdir -p ${output} && \
+date > ${output}/now.txt && \
+touch ${output}/this-is-a-fake-build \
+""")
+            return
+        }
+
         sh(script: """\
 ./kci_rootfs \
 build \
