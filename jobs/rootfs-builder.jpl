@@ -126,9 +126,7 @@ node("debos && docker") {
         inside(" --privileged --device /dev/kvm -v /dev:/dev") {
 
         stage("Build") {
-            timeout(time: 20, unit: 'HOURS') {
-	        build(config, arch, pipeline_version, kci_core, rootfs_type)
-            }
+	    build(config, arch, pipeline_version, kci_core, rootfs_type)
         }
 
         stage("Upload") {
