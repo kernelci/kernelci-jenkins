@@ -103,7 +103,7 @@ node("debos && docker") {
     def docker_image = "${params.DOCKER_BASE}${rootfs_type}"
 
     if (rootfs_type == "chromiumos") {
-        docker_image = "kernelci/cros-sdk"
+        docker_image = "${params.DOCKER_BASE}cros-sdk"
     }
 
     print("""\
