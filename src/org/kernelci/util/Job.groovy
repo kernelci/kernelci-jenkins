@@ -57,7 +57,9 @@ def dockerImageName(kci_core, build_env, kernel_arch) {
         def build_env_data = build_env_raw.split('\n').toList()
         def cc_arch = build_env_data[3]
 
-        if (cc_arch)
+        if (cc_arch == 'sparc') /* No kselftest variant for sparc */
+            image_name = "${build_env}:${cc_arch}-kernelci"
+        else if (cc_arch)
             image_name = "${build_env}:${cc_arch}-kselftest-kernelci"
         else
             image_name = "${build_env}:kselftest-kernelci"
