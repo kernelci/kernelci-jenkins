@@ -1,0 +1,97 @@
+#!/usr/bin/env groovy
+
+/*
+  Copyright (C) 2022 Collabora Limited
+  Author: Michal Galka <michal.galka@collabora.com>
+
+  This module is free software; you can redistribute it and/or modify it under
+  the terms of the GNU Lesser General Public License as published by the Free
+  Software Foundation; either version 2.1 of the License, or (at your option)
+  any later version.
+
+  This library is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+  FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more
+  details.
+
+  You should have received a copy of the GNU Lesser General Public License
+  along with this library; if not, write to the Free Software Foundation, Inc.,
+  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+*/
+
+/* ----------------------------------------------------------------------------
+ * Jenkins parameters
+
+DOCKER_BASE
+  Dockerhub base address used for the build images
+FLASH_ROOTFS_STORAGE_URL (https://storage.kernelci.org/images/rootfs)
+  Rootfs storage URL
+FLASH_ROOTFS_CONFIG
+  Configuration name to build rootfs images
+FLASH_ROOTFS_ARCH
+  Flashing rootfs image architecture
+FLASH_PIPELINE_VERSION
+  Unique string identifier for the series of rootfs build jobs
+CROS_ROOTFS_STORAGE_URL (https://storage.chromeos.kernelci.org/images/rootfs)
+  Chrome OS images storage URL
+CROS_CONFIG
+  Configuration name used to build Chrome OS
+CROS_ARCH
+  Chrome OS architecture
+CROS_PIPELINE_VERSION
+  Unique string identifier for the series of Chrome OS build jobs
+*/
+
+@Library('kernelci') _
+import org.kernelci.util.Job
+
+node("debos && docker") {
+    def j = new Job()
+    def cros_image_name = "chromiumos_test_image.bin"
+    def flash_image_name = "full.rootfs.tar"
+    def docker_image = "${params.DOCKER_BASE}cros-sdk"
+    def cros_image_url = "${params.CROS_ROOTFS_STORAGE_URL}/chromeos/${params.CROS_CONFIG}/${params.CROS_PIPELINE_VERSION}/${params.CROS_ARCH}/${cros_image_name}.gz"
+    def flash_image_url = "${params.FLASH_ROOTFS_STORAGE_URL}/debian/${params.FLASH_ROOTFS_CONFIG}/${params.FLASH_PIPELINE_VERSION}/${params.FLASH_ROOTFS_ARCH}/${flash_image_name}.xz"
+    def upload_path = "chromeos/${params.CROS_CONFIG}/${params.CROS_PIPELINE_VERSION}/${params.CROS_ARCH}"
+    def output_image_name = "full-cros-flash.tar.gz"
+
+    print("""\
+    CrOS image URL:    ${cros_image_url}
+    Flash image URL:   ${flash_image_url}
+    Upload path:       ${upload_path}
+    Docker:            ${docker_image}""")
+
+    j.dockerPullWithRetry(docker_image).inside() {
+        stage("Download") {
+          sh(script: """\
+wget -O ${cros_image_name}.gz ${cros_image_url}
+wget -O ${flash_image_name}.xz ${flash_image_url}"""
+          )
+        }
+        stage("Append") {
+          sh(script: """\
+gunzip -f ${cros_image_name}.gz
+mkdir -p ./root
+mv ${cros_image_name} ./root/
+xz -fd ${flash_image_name}.xz
+tar rvf ${flash_image_name} ./root/${cros_image_name}
+gzip -f ${flash_image_name}
+mv ${flash_image_name}.gz ${output_image_name}
+          """
+          )
+        }
+        stage("Upload") {
+            sshagent(credentials : ['jenkins-chromeos-storage-private-key']) {
+                sh(script: """\
+scp \
+-o StrictHostKeyChecking=no \
+-P 22022 \
+${output_image_name} \
+chromeos@storage.chromeos.kernelci.org:\
+~/images/rootfs/chromeos/${params.CROS_CONFIG}/${params.CROS_PIPELINE_VERSION}/${params.CROS_ARCH}/
+"""
+                  )
+            }
+        }
+    }
+}
