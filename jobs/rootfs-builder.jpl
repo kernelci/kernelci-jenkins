@@ -89,7 +89,7 @@ node("debos && docker") {
     def arch = "${params.ROOTFS_ARCH}"
     def pipeline_version =  "${params.PIPELINE_VERSION}"
     def rootfs_type = "${params.ROOTFS_TYPE}"
-    def docker_image = "${params.DOCKER_BASE}${rootfs_type}"
+    def docker_image = "${params.DOCKER_BASE}${rootfs_type}:kernelci"
 
     print("""\
     Config:    ${config}
