@@ -95,6 +95,8 @@ def pushTarball(config, kci_core, kdir, opts) {
     dir(kci_core) {
         withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
                                 variable: 'SECRET')]) {
+            sh(script: "./kci_build init_bmeta --build-config=${config} --kdir=${kdir}")
+
             opts['tarball_url'] = sh(script: """\
 ./kci_build \
 push_tarball \
