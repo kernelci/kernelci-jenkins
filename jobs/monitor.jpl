@@ -33,10 +33,6 @@ KCI_API_TOKEN_ID
   Identifier of the KernelCI backend API token stored in Jenkins
 KCI_STORAGE_URL (https://storage.kernelci.org/)
   URL of the KernelCI storage server
-KCI_CORE_URL (https://github.com/kernelci/kernelci-core.git)
-  URL of the kernelci-core repository
-KCI_CORE_BRANCH (master)
-  Name of the branch to use in the kernelci-core repository
 DOCKER_BASE (kernelci/)
   Dockerhub base address used for the build images
 */
@@ -44,45 +40,41 @@ DOCKER_BASE (kernelci/)
 @Library('kernelci') _
 import org.kernelci.util.Job
 
-def updateLastCommit(config, commit, kci_core) {
-    dir(kci_core) {
-        withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
-                                variable: 'SECRET')]) {
-            sh(script: """\
-./kci_build \
+def updateLastCommit(config, commit) {
+    withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
+                            variable: 'SECRET')]) {
+        sh(script: """\
+kci_build \
 update_last_commit \
 --build-config=${config} \
 --commit=${commit} \
 --api=${params.KCI_API_URL} \
 --db-token=${SECRET} \
 """)
-        }
     }
 }
 
-def checkConfig(config, kci_core) {
+def checkConfig(config) {
     def retry = 3
     def commit = null
 
-    dir(kci_core) {
-        while (retry--) {
-            try {
-                commit = sh(
-                    script: """
-./kci_build \
+    while (retry--) {
+        try {
+            commit = sh(
+                script: """
+kci_build \
 check_new_commit \
 --build-config=${config} \
 --storage=${params.KCI_STORAGE_URL} \
 """, returnStdout: true).trim()
-                retry = 0
-            } catch (error) {
+            retry = 0
+        } catch (error) {
 
-                if (retry) {
-                    print("Failed to check ${config}, retyring: ${error}")
-                    sleep(1)
-                } else {
-                    print("ERROR: All attempts failed with ${config}")
-                }
+            if (retry) {
+                print("Failed to check ${config}, retyring: ${error}")
+                sleep(1)
+            } else {
+                print("ERROR: All attempts failed with ${config}")
             }
         }
     }
@@ -94,7 +86,7 @@ check_new_commit \
 
     print("${config}: triggering build")
 
-    updateLastCommit(config, commit, kci_core)
+    updateLastCommit(config, commit)
 
     def job = "kernel-build-trigger"
     def str_params = [
@@ -110,7 +102,6 @@ check_new_commit \
 
 node("docker && monitor") {
     def j = new Job()
-    def kci_core = env.WORKSPACE + '/kernelci-core'
     def docker_image = "${params.DOCKER_BASE}kernelci"
 
     print("""\
@@ -118,35 +109,26 @@ node("docker && monitor") {
     Container: ${docker_image}""")
 
     j.dockerPullWithRetry(docker_image).inside() {
-        stage("Init") {
-            timeout(time: 15, unit: 'MINUTES') {
-                j.cloneKciCore(
-                    kci_core, params.KCI_CORE_URL, params.KCI_CORE_BRANCH)
-            }
-        }
-
         stage("Monitor") {
-            dir(kci_core) {
-                def config_list = null
-                def config_jobs = [:]
+            def config_list = null
+            def config_jobs = [:]
 
-                if (params.CONFIG_LIST != "") {
-                    config_list = params.CONFIG_LIST.tokenize(' ')
-                } else {
-                    def raw_configs = sh(script: "./kci_build list_configs",
-                                         returnStdout: true).trim()
-                    config_list = raw_configs.tokenize('\n')
-                }
-
-                for (String config: config_list) {
-                    def config_name = config
-                    config_jobs[config_name] = {
-                        checkConfig(config_name, kci_core)
-                    }
-                }
-
-                parallel(config_jobs)
+            if (params.CONFIG_LIST != "") {
+                config_list = params.CONFIG_LIST.tokenize(' ')
+            } else {
+                def raw_configs = sh(script: "kci_build list_configs",
+                                     returnStdout: true).trim()
+                config_list = raw_configs.tokenize('\n')
             }
+
+            for (String config: config_list) {
+                def config_name = config
+                config_jobs[config_name] = {
+                    checkConfig(config_name)
+                }
+            }
+
+            parallel(config_jobs)
         }
     }
 }
