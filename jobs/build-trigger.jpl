@@ -38,10 +38,6 @@ KCI_API_TOKEN_ID
   Identifier of the KernelCI backend API token stored in Jenkins
 KCI_STORAGE_URL (https://storage.kernelci.org/)
   URL of the KernelCI storage server
-KCI_CORE_URL (https://github.com/kernelci/kernelci-core.git)
-  URL of the kernelci-core repository
-KCI_CORE_BRANCH (master)
-  Name of the branch to use in the kernelci-core repository
 DOCKER_BASE (kernelci/)
   Dockerhub base address used for the build images
 ALLOW_REBUILD (false)
@@ -51,52 +47,49 @@ ALLOW_REBUILD (false)
 @Library('kernelci') _
 import org.kernelci.util.Job
 
-def updateRepo(config, kci_core, mirror, kdir, opts) {
-    dir(kci_core) {
-        sh(script: """\
-./kci_build \
+def updateRepo(config, mirror, kdir, opts) {
+    sh(script: """\
+kci_build \
 update_mirror \
 --build-config=${config} \
 --mirror=${mirror} \
 """)
 
-        while (true) {
-            try {
-                sh(script: """\
-./kci_build \
+    while (true) {
+        try {
+            sh(script: """\
+kci_build \
 update_repo \
 --build-config=${config} \
 --kdir=${kdir} \
 --mirror=${mirror} \
 """)
-                break
-            } catch (error) {
-                print("Failed to update repo: ${error}")
-                print("Removing clone and retrying")
-                sh(script: "rm -rf ${kdir}")
-                sleep 1
-            }
+            break
+        } catch (error) {
+            print("Failed to update repo: ${error}")
+            print("Removing clone and retrying")
+            sh(script: "rm -rf ${kdir}")
+            sleep 1
         }
+    }
 
-        def describe_raw = sh(script: """\
-./kci_build \
+    def describe_raw = sh(script: """\
+kci_build \
 describe \
 --build-config=${config} \
 --kdir=${kdir} \
 """, returnStdout: true).trim()
-        def describe_list = describe_raw.tokenize('\n')
-        opts['commit'] = describe_list[0]
-        opts['describe'] = describe_list[1]
-        opts['describe_verbose'] = describe_list[2]
-    }
+    def describe_list = describe_raw.tokenize('\n')
+    opts['commit'] = describe_list[0]
+    opts['describe'] = describe_list[1]
+    opts['describe_verbose'] = describe_list[2]
 }
 
-def pushTarball(config, kci_core, kdir, opts) {
-    dir(kci_core) {
-        withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
-                                variable: 'SECRET')]) {
-            opts['tarball_url'] = sh(script: """\
-./kci_build \
+def pushTarball(config, kdir, opts) {
+    withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
+                            variable: 'SECRET')]) {
+        opts['tarball_url'] = sh(script: """\
+kci_build \
 push_tarball \
 --build-config=${config} \
 --kdir=${kdir} \
@@ -104,86 +97,79 @@ push_tarball \
 --api=${params.KCI_API_URL} \
 --db-token=${SECRET} \
 """, returnStdout: true).trim()
-        }
     }
 }
 
-def listConfigs(config, kci_core, kdir, config_list) {
-    dir(kci_core) {
-            sh(script: """\
-./kci_build \
+def listConfigs(config, kdir, config_list) {
+    sh(script: """\
+kci_build \
 generate_fragments \
 --build-config=${config} \
 --kdir=${kdir} \
 """)
 
-        def kernel_config_list_raw = sh(script: """\
-./kci_build \
+    def kernel_config_list_raw = sh(script: """\
+kci_build \
 list_kernel_configs \
 --build-config=${config} \
 --kdir=${kdir} \
 """, returnStdout: true).trim()
-        def kernel_config_list = kernel_config_list_raw.tokenize('\n')
+    def kernel_config_list = kernel_config_list_raw.tokenize('\n')
 
-        for (String kernel_config_raw: kernel_config_list) {
-            def data = kernel_config_raw.tokenize(' ')
-            def arch = data[0]
-            def defconfig = data[1]
-            def build_env = data[2]
-            config_list.add([arch, defconfig, build_env])
-        }
+    for (String kernel_config_raw: kernel_config_list) {
+        def data = kernel_config_raw.tokenize(' ')
+        def arch = data[0]
+        def defconfig = data[1]
+        def build_env = data[2]
+        config_list.add([arch, defconfig, build_env])
     }
 }
 
-def listArchitectures(kci_core, config) {
+def listArchitectures(config) {
     def arch_list = []
 
-    dir(kci_core) {
-        def raw_variants = sh(
-            script: """\
-./kci_build \
+    def raw_variants = sh(
+        script: """\
+kci_build \
 list_variants \
 --build-config=${config} \
 """, returnStdout: true).trim()
-        def variants = raw_variants.tokenize('\n')
+    def variants = raw_variants.tokenize('\n')
 
-        for (String variant: variants) {
-            def raw_variant_arch_list = sh(
-                script: """\
-./kci_build \
+    for (String variant: variants) {
+        def raw_variant_arch_list = sh(
+            script: """\
+kci_build \
 arch_list \
 --build-config=${config} \
 --variant=${variant} \
 """, returnStdout: true).trim()
-            def variant_arch_list = raw_variant_arch_list.tokenize('\n')
+        def variant_arch_list = raw_variant_arch_list.tokenize('\n')
 
-            for (String arch: variant_arch_list)
-                if (!arch_list.contains(arch))
-                    arch_list.add(arch)
-        }
+        for (String arch: variant_arch_list)
+            if (!arch_list.contains(arch))
+                arch_list.add(arch)
     }
 
     return arch_list
 }
 
-def addBuildOpts(config, kci_core, opts) {
-    dir(kci_core) {
-        opts['config'] = config
+def addBuildOpts(config, opts) {
+    opts['config'] = config
 
-        def opts_raw = sh(
-            script: """\
-./kci_build \
+    def opts_raw = sh(
+        script: """\
+kci_build \
 tree_branch \
 --build-config=${config} \
 """, returnStdout: true).trim()
-        def opt_list = opts_raw.tokenize('\n')
-        opts['tree'] = opt_list[0]
-        opts['git_url'] = opt_list[1]
-        opts['branch'] = opt_list[2]
-    }
+    def opt_list = opts_raw.tokenize('\n')
+    opts['tree'] = opt_list[0]
+    opts['git_url'] = opt_list[1]
+    opts['branch'] = opt_list[2]
 }
 
-def getLabsWithTests(build_job_name, number, labs, kci_core) {
+def getLabsWithTests(build_job_name, number, labs) {
     def artifacts = "${env.WORKSPACE}/artifacts-${build_job_name}-${number}"
     def lab_list = []
 
@@ -194,24 +180,22 @@ def getLabsWithTests(build_job_name, number, labs, kci_core) {
         )
     }
 
-    dir(kci_core) {
-        def labs_info = "${env.WORKSPACE}/labs"
+    def labs_info = "${env.WORKSPACE}/labs"
 
-        for (lab in labs) {
-            def lab_json = "${labs_info}/${lab}.json"
+    for (lab in labs) {
+        def lab_json = "${labs_info}/${lab}.json"
 
-            def raw_jobs = sh(script: """\
+        def raw_jobs = sh(script: """\
 #!/bin/sh -e
-./kci_test \
+kci_test \
 list_jobs \
 --lab-config=${lab} \
 --lab-json=${lab_json} \
 --install-path=${artifacts} \
 """, returnStdout: true).trim()
 
-            if (raw_jobs)
-                lab_list.push(lab)
-        }
+        if (raw_jobs)
+            lab_list.push(lab)
     }
 
     sh(script: "rm -rf ${artifacts}")
@@ -219,28 +203,26 @@ list_jobs \
     return lab_list
 }
 
-def scheduleTests(build_job_name, build_job_number, labs, kci_core) {
-    dir(kci_core) {
-        def labs_str = ""
-        for (lab in labs)
-            labs_str += "${lab} "
+def scheduleTests(build_job_name, build_job_number, labs) {
+    def labs_str = ""
+    for (lab in labs)
+        labs_str += "${lab} "
 
-        def str_params = [
-            'LABS': labs_str.trim(),
-            'TRIGGER_JOB_NAME': env.JOB_NAME,
-            'TRIGGER_JOB_NUMBER': env.BUILD_NUMBER,
-            'BUILD_JOB_NAME': build_job_name,
-            'BUILD_JOB_NUMBER': "${build_job_number}",
-        ]
-        def params = []
+    def str_params = [
+        'LABS': labs_str.trim(),
+        'TRIGGER_JOB_NAME': env.JOB_NAME,
+        'TRIGGER_JOB_NUMBER': env.BUILD_NUMBER,
+        'BUILD_JOB_NAME': build_job_name,
+        'BUILD_JOB_NUMBER': "${build_job_number}",
+    ]
+    def params = []
 
-        def j = new Job()
-        j.addStrParams(params, str_params)
-        build(job: 'test-runner', parameters: params, propagate: false)
-    }
+    def j = new Job()
+    j.addStrParams(params, str_params)
+    build(job: 'test-runner', parameters: params, propagate: false)
 }
 
-def buildKernelStep(job, arch, defconfig, build_env, opts, labs, kci_core) {
+def buildKernelStep(job, arch, defconfig, build_env, opts, labs) {
     def node_label = "k8s"
     def parallel_builds = "4"
 
@@ -266,8 +248,6 @@ def buildKernelStep(job, arch, defconfig, build_env, opts, labs, kci_core) {
         'BUILD_ENVIRONMENT': build_env,
         'NODE_LABEL': node_label,
         'PARALLEL_BUILDS': parallel_builds,
-        'KCI_CORE_URL': "${params.KCI_CORE_URL}",
-        'KCI_CORE_BRANCH': "${params.KCI_CORE_BRANCH}",
         'KCI_API_URL': "${params.KCI_API_URL}",
         'KCI_API_TOKEN_ID': "${params.KCI_API_TOKEN_ID}",
         'KCI_STORAGE_URL': "${params.KCI_STORAGE_URL}",
@@ -282,9 +262,9 @@ def buildKernelStep(job, arch, defconfig, build_env, opts, labs, kci_core) {
         def res = build(job: job, parameters: job_params, propagate: false)
         print("${res.number}: ${arch} ${defconfig} ${build_env} ${res.result}")
         if (res.result == "SUCCESS") {
-            def test_labs = getLabsWithTests(job, res.number, labs, kci_core)
+            def test_labs = getLabsWithTests(job, res.number, labs)
             if (test_labs) {
-                scheduleTests(job, res.number, test_labs, kci_core)
+                scheduleTests(job, res.number, test_labs)
             }
         }
     }
@@ -310,7 +290,6 @@ def buildsComplete(job, opts) {
 
 node("docker && build-trigger") {
     def j = new Job()
-    def kci_core = "${env.WORKSPACE}/kernelci-core"
     def kdir = "${env.WORKSPACE}/configs/${params.BUILD_CONFIG}"
     def mirror = "${env.WORKSPACE}/linux.git"
     def labs_info = "${env.WORKSPACE}/labs"
@@ -327,65 +306,56 @@ node("docker && build-trigger") {
     j.dockerPullWithRetry(docker_image).inside() {
         def labs = []
 
-        stage("Init") {
-            timeout(time: 15, unit: 'MINUTES') {
-                j.cloneKciCore(
-                    kci_core, params.KCI_CORE_URL, params.KCI_CORE_BRANCH)
-            }
-        }
-
         stage("Labs") {
             sh(script: "rm -rf ${labs_info}; mkdir -p ${labs_info}")
 
-            dir(kci_core) {
-                def raw_lab_names = sh(
-                    script: "./kci_test list_labs", returnStdout: true).trim()
-                def all_lab_names = raw_lab_names.tokenize('\n')
-                def labs_list = []
+            def raw_lab_names = sh(
+                script: "kci_test list_labs", returnStdout: true).trim()
+            def all_lab_names = raw_lab_names.tokenize('\n')
+            def labs_list = []
 
-                if (params.LABS_WHITELIST) {
-                    def whitelist = params.LABS_WHITELIST.tokenize(' ')
+            if (params.LABS_WHITELIST) {
+                def whitelist = params.LABS_WHITELIST.tokenize(' ')
 
-                    for (lab in all_lab_names)
-                        if (whitelist.contains(lab))
-                            labs_list.add(lab)
-                } else {
-                    labs_list = all_lab_names
-                }
+                for (lab in all_lab_names)
+                    if (whitelist.contains(lab))
+                        labs_list.add(lab)
+            } else {
+                labs_list = all_lab_names
+            }
 
-                for (lab in labs_list) {
-                    def lab_json = "${labs_info}/${lab}.json"
-                    def token = "${lab}-lava-api"
-                    def retry = 3
-                    while (retry--) {
-                        try {
-                            withCredentials([string(credentialsId: token,
-                                                    variable: 'SECRET')]) {
-                                sh(script: """\
-./kci_test \
+            for (lab in labs_list) {
+                def lab_json = "${labs_info}/${lab}.json"
+                def token = "${lab}-lava-api"
+                def retry = 3
+                while (retry--) {
+                    try {
+                        withCredentials([string(credentialsId: token,
+                                                variable: 'SECRET')]) {
+                            sh(script: """\
+kci_test \
 get_lab_info \
 --lab-config=${lab} \
 --lab-json=${lab_json} \
 --user=kernel-ci \
 --lab-token=${SECRET} \
 """)
-                            }
-                            labs.add(lab)
-                            retry = 0
-                        } catch (error) {
-                            print("Error with ${lab}: ${error}")
                         }
+                        labs.add(lab)
+                        retry = 0
+                    } catch (error) {
+                        print("Error with ${lab}: ${error}")
                     }
                 }
             }
+        }
 
-            dir(labs_info) {
-                archiveArtifacts("*.json")
-            }
+        dir(labs_info) {
+            archiveArtifacts("*.json")
         }
 
         stage("Repo") {
-            updateRepo(params.BUILD_CONFIG, kci_core, mirror, kdir, opts)
+            updateRepo(params.BUILD_CONFIG, mirror, kdir, opts)
         }
 
         if (params.ALLOW_REBUILD != true) {
@@ -397,18 +367,18 @@ get_lab_info \
         }
 
         stage("Tarball") {
-            pushTarball(params.BUILD_CONFIG, kci_core, kdir, opts)
+            pushTarball(params.BUILD_CONFIG, kdir, opts)
         }
 
         stage("Configs") {
-            listConfigs(params.BUILD_CONFIG, kci_core, kdir, configs)
+            listConfigs(params.BUILD_CONFIG, kdir, configs)
         }
 
         stage("Build") {
             def builds = [:]
             def i = 0
 
-            addBuildOpts(params.BUILD_CONFIG, kci_core, opts)
+            addBuildOpts(params.BUILD_CONFIG, opts)
 
             for (x in configs) {
                 def arch = x[0]
@@ -419,8 +389,7 @@ get_lab_info \
                 print(step_name)
 
                 builds[step_name] = buildKernelStep(
-                    "kernel-build", arch, defconfig, build_env, opts, labs,
-                    kci_core)
+                    "kernel-build", arch, defconfig, build_env, opts, labs)
 
                 i += 1
             }
