@@ -43,27 +43,25 @@ def cloneKciCore(path, url, branch) {
     }
 }
 
-def dockerImageName(kci_core, build_env, kernel_arch) {
+def dockerImageName(build_env, kernel_arch) {
     def image_name = build_env
 
-    dir(kci_core) {
-        def build_env_raw = sh(
-            script: """
-./kci_build \
+    def build_env_raw = sh(
+        script: """
+kci_build \
   show_build_env \
   --build-env=${build_env} \
   --arch=${kernel_arch} \
 """, returnStdout: true).trim()
-        def build_env_data = build_env_raw.split('\n').toList()
-        def cc_arch = build_env_data[3]
+    def build_env_data = build_env_raw.split('\n').toList()
+    def cc_arch = build_env_data[3]
 
-        if (cc_arch == 'sparc') /* No kselftest variant for sparc */
-            image_name = "${build_env}:${cc_arch}-kernelci"
-        else if (cc_arch)
-            image_name = "${build_env}:${cc_arch}-kselftest-kernelci"
-        else
-            image_name = "${build_env}:kselftest-kernelci"
-    }
+    if (cc_arch == 'sparc') /* No kselftest variant for sparc */
+        image_name = "${build_env}:${cc_arch}-kernelci"
+    else if (cc_arch)
+        image_name = "${build_env}:${cc_arch}-kselftest-kernelci"
+    else
+        image_name = "${build_env}:kselftest-kernelci"
 
     return image_name
 }
