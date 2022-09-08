@@ -111,7 +111,7 @@ check_new_commit \
 node("docker && monitor") {
     def j = new Job()
     def kci_core = env.WORKSPACE + '/kernelci-core'
-    def docker_image = "${params.DOCKER_BASE}build-base"
+    def docker_image = "${params.DOCKER_BASE}kernelci"
 
     print("""\
     Storage:   ${params.KCI_STORAGE_URL}
