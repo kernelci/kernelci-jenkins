@@ -786,7 +786,7 @@ ${params_summary}""")
     j.dockerPullWithRetry("${params.DOCKER_BASE}kernelci").inside() {
         j.cloneKciCore(kci_core, params.KCI_CORE_URL, params.KCI_CORE_BRANCH)
         build_env_docker_image = j.dockerImageName(
-            kci_core, params.BUILD_ENVIRONMENT, params.ARCH)
+            params.BUILD_ENVIRONMENT, params.ARCH)
         docker_image = "${params.DOCKER_BASE}${build_env_docker_image}"
     }
 
