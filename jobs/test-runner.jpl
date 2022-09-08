@@ -32,10 +32,6 @@ BUILD_JOB_NAME
   Name of the job that built the kernel
 BUILD_JOB_NUMBER
   Number of the job that built the kernel
-KCI_CORE_URL (https://github.com/kernelci/kernelci-core.git)
-  URL of the kernelci-core repository
-KCI_CORE_BRANCH (master)
-  Name of the branch to use in the kernelci-core repository
 KCI_STORAGE_URL (https://storage.kernelci.org/)
   URL of the KernelCI storage server
 DOCKER_BASE (kernelci/)
@@ -66,14 +62,13 @@ def getArtifacts(artifacts)
     }
 }
 
-def generateJobs(kci_core, lab, artifacts, jobs_dir)
+def generateJobs(lab, artifacts, jobs_dir)
 {
     def token = "${lab}-lava-api"
 
-    dir(kci_core) {
-        withCredentials([string(credentialsId: token, variable: 'SECRET')]) {
-            sh(script: """\
-./kci_test \
+    withCredentials([string(credentialsId: token, variable: 'SECRET')]) {
+        sh(script: """\
+kci_test \
 generate \
 --install-path=${artifacts} \
 --lab-json=${artifacts}/${lab}.json \
@@ -85,31 +80,27 @@ generate \
 --callback-id=${params.CALLBACK_ID} \
 --callback-url=${params.CALLBACK_URL} \
 """)
-        }
     }
 }
 
-def submitJobs(kci_core, lab, jobs_dir)
+def submitJobs(lab, jobs_dir)
 {
     def token = "${lab}-lava-api"
 
-    dir(kci_core) {
-        withCredentials([string(credentialsId: token, variable: 'SECRET')]) {
-            sh(script: """\
-./kci_test \
+    withCredentials([string(credentialsId: token, variable: 'SECRET')]) {
+        sh(script: """\
+kci_test \
 submit \
 --lab-config=${lab} \
 --user=kernel-ci \
 --lab-token=${SECRET} \
 --jobs=${jobs_dir}/* \
 """)
-        }
     }
 }
 
 node("docker && test-runner") {
     def j = new Job()
-    def kci_core = "${env.WORKSPACE}/kernelci-core"
     def jobs_dir = "${env.WORKSPACE}/jobs"
     def artifacts = "${env.WORKSPACE}/artifacts"
     def docker_image = "${params.DOCKER_BASE}kernelci"
@@ -126,16 +117,7 @@ node("docker && test-runner") {
             sh(script: "rm -rf ${jobs_dir}")
 
             timeout(time: 15, unit: 'MINUTES') {
-                parallel(
-                    kci_core: {
-                        j.cloneKciCore(
-                            kci_core,
-                            params.KCI_CORE_URL, params.KCI_CORE_BRANCH)
-                    },
-                    artifacts: {
-                        getArtifacts(artifacts)
-                    },
-                )
+                getArtifacts(artifacts)
             }
 
             print("Artifacts:")
@@ -148,7 +130,7 @@ node("docker && test-runner") {
         stage("Generate") {
             for (lab in labs) {
                 def lab_dir = "${jobs_dir}/${lab}"
-                generateJobs(kci_core, lab, artifacts, lab_dir)
+                generateJobs(lab, artifacts, lab_dir)
                 labs_submit.add(lab)
             }
         }
@@ -165,7 +147,7 @@ node("docker && test-runner") {
                 print(step_name)
 
                 steps[step_name] = {
-                    submitJobs(kci_core, lab_name, lab_dir)
+                    submitJobs(lab_name, lab_dir)
                 }
 
                 i += 1
