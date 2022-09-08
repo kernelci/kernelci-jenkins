@@ -52,10 +52,6 @@ KCI_API_TOKEN_ID
   Identifier of the KernelCI backend API token stored in Jenkins
 KCI_STORAGE_URL (https://storage.kernelci.org/)
   URL of the KernelCI storage server
-KCI_CORE_URL (https://github.com/kernelci/kernelci-core.git)
-  URL of the kernelci-core repository
-KCI_CORE_BRANCH (master)
-  Name of the branch to use in the kernelci-core repository
 DOCKER_BASE (kernelci/)
   Dockerhub base address used for the build images
 PARALLEL_BUILDS
@@ -70,7 +66,6 @@ import org.kernelci.util.Job
 /* K8S build */
 node("docker" && params.NODE_LABEL) {
     def j = new Job()
-    def kci_core = "${env.WORKSPACE}/kernelci-core"
     def k8s_context = "${env.K8S_CONTEXT}"
     def docker_image = null
 
@@ -85,48 +80,52 @@ node("docker" && params.NODE_LABEL) {
 
     docker_image = "${params.DOCKER_BASE}k8s:kernelci"
     j.dockerPullWithRetry(docker_image).inside("-v $HOME/.kube:/.kube -v $HOME/.config/gcloud:/.config/gcloud -v $HOME/.azure:/.azure") {
-        j.cloneKciCore(kci_core, params.KCI_CORE_URL, params.KCI_CORE_BRANCH)
         build_env_docker_image = j.dockerImageName(
-            params.BUILD_ENVIRONMENT, params.ARCH)
+            params.BUILD_ENVIRONMENT, params.ARCH
+        )
 
-	dir(kci_core) {
-	    stage("Init") {
-		/* list clusters to init/refresh auth credentials */
-		print("K8S: Google Cloud clusters available:")
-		sh(script: "gcloud container clusters list || exit 0")
-		print("K8S: Azure clusters available:")
-		sh(script: "az aks list -o table || exit 0")
+        stage("Init") {
+            /* Remove any leftover temporary files */
+            sh(script: "rm -rf *")
+            /* list clusters to init/refresh auth credentials */
+            print("K8S: Google Cloud clusters available:")
+            sh(script: "gcloud container clusters list || exit 0")
+            print("K8S: Azure clusters available:")
+            sh(script: "az aks list -o table || exit 0")
+            print("K8S context: ${k8s_context}.  Current nodes:")
+            sh(script: "kubectl --context ${k8s_context} get nodes")
+        }
 
-		print("K8S context: ${k8s_context}.  Current nodes:")
-		sh(script: "kubectl --context ${k8s_context} get nodes")
-	    }
+        stage("Build") {
+            timeout(time: 45, unit: 'MINUTES') {
+                def k8s_job = sh(script: """\
+DOCKER_IMAGE=${build_env_docker_image} \
+/etc/kernelci/k8s/gen.py""", returnStdout: true).trim()
 
-	    stage("Build") {
-		timeout(time: 45, unit: 'MINUTES') {
-		    def k8s_job = sh(script:"DOCKER_IMAGE=${build_env_docker_image} ./config/k8s/gen.py",
-				     returnStdout: true).trim()
+                /* submit */
+                sh(script: "kubectl --context ${k8s_context} apply -f ${k8s_job}.yaml")
+                sh(script: "kubectl --context ${k8s_context} describe -f ${k8s_job}.yaml || exit 0")
 
-		    /* submit */
-		    sh(script: "kubectl --context ${k8s_context} apply -f ${k8s_job}.yaml")
-		    sh(script: "kubectl --context ${k8s_context} describe -f ${k8s_job}.yaml || exit 0")
+                /* Wait for pod to finish (will also dump logs and remove job) */
+                sh(script: """
+/etc/kernelci/k8s/wait.py \
+--context ${k8s_context} \
+--job-name ${k8s_job} \
+| tee ${k8s_job}.log""")
 
-		    /* Wait for pod to finish (will also dump logs and remove job) */
-		    sh(script: "./config/k8s/wait.py --context ${k8s_context} --job-name ${k8s_job} | tee ${k8s_job}.log")
+                /* Find upload path */
+                upload_path_line = sh(script: "grep \"^Upload path:\" ${k8s_job}.log",
+                                      returnStdout: true).trim().tokenize(':')
+                if (upload_path_line.size() > 0) {
+                    upload_path = upload_path_line[1].trim()
+                    print("Upload path: ${upload_path}")
 
-		    /* Find upload path */
-		    upload_path_line = sh(script: "grep \"^Upload path:\" ${k8s_job}.log",
-					  returnStdout: true).trim().tokenize(':')
-		    if (upload_path_line.size() > 0) {
-			upload_path = upload_path_line[1].trim()
-			print("Upload path: ${upload_path}")
-
-			sh(script: "wget -q ${KCI_STORAGE_URL}/${upload_path}/bmeta.json")
-			sh(script: "wget -q ${KCI_STORAGE_URL}/${upload_path}/steps.json")
-			sh(script: "wget -q ${KCI_STORAGE_URL}/${upload_path}/artifacts.json")
-			archiveArtifacts("*.json")
-		    }
-		}
-	    }
-	}
+                    sh(script: "wget -q ${KCI_STORAGE_URL}/${upload_path}/bmeta.json")
+                    sh(script: "wget -q ${KCI_STORAGE_URL}/${upload_path}/steps.json")
+                    sh(script: "wget -q ${KCI_STORAGE_URL}/${upload_path}/artifacts.json")
+                    archiveArtifacts("*.json")
+                }
+            }
+        }
     }
 }
