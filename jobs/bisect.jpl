@@ -67,10 +67,6 @@ KCI_STORAGE_URL (https://storage.kernelci.org/)
   URL of the KernelCI storage server
 KCI_DB_CONFIG (kernelci.org)
   Name of the database config (--db-config argument)
-KCI_CORE_URL (https://github.com/kernelci/kernelci-core.git)
-  URL of the kernelci-core repository
-KCI_CORE_BRANCH (master)
-  Name of the branch to use in the kernelci-core repository
 DOCKER_BASE (kernelci/)
   Dockerhub base address used for the build images
 LAVA_CALLBACK (kernel-ci-callback)
@@ -166,11 +162,6 @@ fi
  * cloning projects
  */
 
-def cloneKciCore(kci_core) {
-    def j = new Job()
-    j.cloneKciCore(kci_core, params.KCI_CORE_URL, params.KCI_CORE_BRANCH)
-}
-
 def cloneLinux(kdir) {
     print("""\
 Initialising kernel tree
@@ -219,33 +210,32 @@ git symbolic-ref HEAD refs/heads/${params.KERNEL_BRANCH}
  * kernel build
  */
 
-def buildKernel(kdir, kci_core) {
+def buildKernel(kdir) {
     def output = "${kdir}/build-${params.ARCH}-${params.BUILD_ENVIRONMENT}"
-    dir(kci_core) {
-        sh(script: "rm -f ${env._BMETA_JSON}")
-        sh(script: "rm -f ${env._ARTIFACTS_JSON}")
+    sh(script: "rm -f ${env._BMETA_JSON}")
+    sh(script: "rm -f ${env._ARTIFACTS_JSON}")
 
-        sh(script: """\
+    sh(script: """\
 for d in \$(find ${kdir} -name "build-*" -type d); do
   [ "\$d" = "${output}" ] || rm -rf "\$d"
 done
 """)
 
-        sh(script: """\
-./kci_build \
+    sh(script: """\
+kci_build \
 generate_defconfig_fragments \
 --defconfig=${params.DEFCONFIG} \
 --kdir=${kdir} \
 """)
 
-        def expanded_defconfig = sh(script: """\
-./kci_build \
+    def expanded_defconfig = sh(script: """\
+kci_build \
 expand_fragments \
 --defconfig=${params.DEFCONFIG} \
 """, returnStdout: true).trim()
 
-        sh(script: """\
-./kci_build \
+    sh(script: """\
+kci_build \
 init_bmeta \
 --kdir=${kdir} \
 --output=${output} \
@@ -257,8 +247,8 @@ init_bmeta \
 --build-env=${params.BUILD_ENVIRONMENT} \
 """)
 
-        sh(script: """\
-./kci_build \
+    sh(script: """\
+kci_build \
 make_config \
 --kdir=${kdir} \
 --output=${output} \
@@ -266,42 +256,42 @@ make_config \
 --defconfig=${expanded_defconfig} \
 """)
 
-        sh(script: """\
-./kci_build \
+    sh(script: """\
+kci_build \
 make_kernel \
 --kdir=${kdir} \
 --output=${output} \
 --install \
 """)
 
-        sh(script: """\
-./kci_build \
+    sh(script: """\
+kci_build \
 make_modules \
 --kdir=${kdir} \
 --output=${output} \
 --install \
 """)
 
-        sh(script: """\
-./kci_build \
+    sh(script: """\
+kci_build \
 make_dtbs \
 --kdir=${kdir} \
 --output=${output} \
 --install \
 """)
 
-        sh(script: """\
-./kci_build \
+    sh(script: """\
+kci_build \
 make_kselftest \
 --kdir=${kdir} \
 --output=${output} \
 --install \
 """)
 
-        withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
-                                variable: 'SECRET')]) {
-            sh(script: """\
-./kci_build \
+    withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
+                            variable: 'SECRET')]) {
+        sh(script: """\
+kci_build \
 push_kernel \
 --kdir=${kdir} \
 --db-token=${SECRET} \
@@ -309,19 +299,18 @@ push_kernel \
 --db-config=${KCI_DB_CONFIG} \
 --output=${output} \
 """)
-        }
+    }
 
-        dir("${output}/_install_") {
-            stash(name: env._BMETA_JSON, includes: env._BMETA_JSON)
-            stash(name: env._ARTIFACTS_JSON, includes: env.ARTIFACTS_JSON)
-        }
+    dir("${output}/_install_") {
+        stash(name: env._BMETA_JSON, includes: env._BMETA_JSON)
+        stash(name: env._ARTIFACTS_JSON, includes: env.ARTIFACTS_JSON)
     }
 }
 
-def buildRevision(kdir, kci_core, git_rev, name) {
+def buildRevision(kdir, git_rev, name) {
     checkoutRevision(kdir, git_rev)
     def tag = createTag(kdir, name)
-    buildKernel(kdir, kci_core)
+    buildKernel(kdir)
     return tag
 }
 
@@ -329,55 +318,52 @@ def buildRevision(kdir, kci_core, git_rev, name) {
  * kernel test with LAVA v2
  */
 
-def fetchLabInfo(kci_core) {
-    dir(kci_core) {
-        def token = "${params.LAB}-lava-api"
-        def retry = 3
+def fetchLabInfo() {
+    def token = "${params.LAB}-lava-api"
+    def retry = 3
 
-        while (retry--) {
-            try {
-                withCredentials([string(credentialsId: token,
-                                        variable: 'SECRET')]) {
-            sh(script: """\
-./kci_test \
+    while (retry--) {
+        try {
+            withCredentials([string(credentialsId: token,
+                                    variable: 'SECRET')]) {
+                sh(script: """\
+kci_test \
 get_lab_info \
 --lab-config=${params.LAB} \
 --lab-json=${env._LAB_JSON} \
 --user=kernel-ci \
 --lab-token=${SECRET} \
 """)
-                    retry = 0
-                }
-            } catch (error) {
-                if (retry)
-                    print("Error with ${lab}: ${error}, retrying...")
-                else
-                    throw error
+                retry = 0
             }
+        } catch (error) {
+            if (retry)
+                print("Error with ${lab}: ${error}, retrying...")
+            else
+                throw error
         }
-        stash(name: env._LAB_JSON, includes: env._LAB_JSON)
     }
+    stash(name: env._LAB_JSON, includes: env._LAB_JSON)
 }
 
-def submitJob(kci_core, describe, hook) {
-    dir(kci_core) {
-        sh(script: """\
+def submitJob(describe, hook) {
+    sh(script: """\
 rm -f ${env._BMETA_JSON} \
 rm -f ${env._ARTIFACTS_JSON} \
 rm -f ${env._LAB_JSON} \
 """)
-        unstash(env._BMETA_JSON)
-        unstash(env._ARTIFACTS_JSON)
-        unstash(env._LAB_JSON)
+    unstash(env._BMETA_JSON)
+    unstash(env._ARTIFACTS_JSON)
+    unstash(env._LAB_JSON)
 
-        def egg_cache = eggCache()
-        def token = "${params.LAB}-lava-api"
+    def egg_cache = eggCache()
+    def token = "${params.LAB}-lava-api"
 
-        /* ToDo: deal with params.LAVA_PRIORITY or drop it */
+    /* ToDo: deal with params.LAVA_PRIORITY or drop it */
 
-        withCredentials([string(credentialsId: token, variable: 'SECRET')]) {
-            sh(script: """ \
-./kci_test \
+    withCredentials([string(credentialsId: token, variable: 'SECRET')]) {
+        sh(script: """ \
+kci_test \
 generate \
 --install-path=. \
 --storage=${params.KCI_STORAGE_URL} \
@@ -395,44 +381,40 @@ generate \
 > job.yaml
 """)
 
-            sh(script: """ \
-./kci_test \
+        sh(script: """ \
+kci_test \
 submit \
 --lab-config=${params.LAB} \
 --user=kernel-ci \
 --lab-token=${SECRET} \
 --jobs=job.yaml \
 """)
-        }
     }
 }
 
-def getResult(kci_core, hook) {
+def getResult(hook) {
+    echo "Waiting for job results..."
     def status = null
-
-    dir(kci_core) {
-        echo "Waiting for job results..."
-        def data = waitForWebhook(hook)
-        def json_file = 'callback.json'
-        writeFile(file: json_file, text: data)
-        def token = "${params.LAB}-bisection-webhook"
-        withCredentials([string(credentialsId: token, variable: 'SECRET')]) {
-            def egg_cache = eggCache()
-            status = sh(returnStatus: true, script: """
+    def data = waitForWebhook(hook)
+    def json_file = 'callback.json'
+    writeFile(file: json_file, text: data)
+    def token = "${params.LAB}-bisection-webhook"
+    withCredentials([string(credentialsId: token, variable: 'SECRET')]) {
+        def egg_cache = eggCache()
+        status = sh(returnStatus: true, script: """
 PYTHON_EGG_CACHE=${egg_cache} \
-./scripts/lava-v2-callback.py \
+kci-bisect-lava-v2-callback \
 --token=${SECRET} \
 --test-case=${params.TEST_CASE} \
 ${json_file}
 """)
-        }
-        sh(script: "rm -f ${json_file}")
     }
+    sh(script: "rm -f ${json_file}")
 
     return status
 }
 
-def runTest(kci_core, describe, expected=0, runs=0) {
+def runTest(describe, expected=0, runs=0) {
     if (!runs)
         runs = params.TEST_RUNS.toInteger()
 
@@ -445,8 +427,8 @@ def runTest(kci_core, describe, expected=0, runs=0) {
 
         while (retries) {
             def hook = registerWebhook()
-            submitJob(kci_core, describe, hook)
-            status = getResult(kci_core, hook)
+            submitJob(describe, hook)
+            status = getResult(hook)
 
             if (status == 1)
                 retries -= 1
@@ -465,7 +447,7 @@ def runTest(kci_core, describe, expected=0, runs=0) {
  * bisection
  */
 
-def findMergeBase(kdir, kci_core, good, bad) {
+def findMergeBase(kdir, good, bad) {
     def base = good
 
     dir(kdir) {
@@ -479,15 +461,15 @@ def findMergeBase(kdir, kci_core, good, bad) {
             def ref_branch = params.REF_KERNEL_BRANCH
 
             if (!(ref_url && ref_tree && ref_branch)) {
-                dir(kci_core) {
-                    ref_config = sh(script: """\
-                                    ./kci_build get_reference --tree-name ${params.KERNEL_TREE} \
-                                    --branch ${params.KERNEL_BRANCH}""", returnStdout: true).trim().tokenize("\n")
-                    if (ref_config.size() > 0) {
-                        ref_url = ref_config[0]
-                        ref_tree = ref_config[1]
-                        ref_branch = ref_config[2]
-                    }
+                ref_config = sh(script: """\
+kci_build \
+get_reference \
+--tree-name ${params.KERNEL_TREE} \
+--branch ${params.KERNEL_BRANCH}""", returnStdout: true).trim().tokenize("\n")
+                if (ref_config.size() > 0) {
+                    ref_url = ref_config[0]
+                    ref_tree = ref_config[1]
+                    ref_branch = ref_config[2]
                 }
             }
             def ref = "${ref_tree}/${ref_branch}"
@@ -550,18 +532,17 @@ def bisectNext(kdir, status) {
  * Results
  */
 
-def pushResults(kci_core, kdir, checks, params_summary) {
+def pushResults(kdir, checks, params_summary) {
     def subject = "\
 ${params.KERNEL_TREE}/${params.KERNEL_BRANCH} bisection: \
 ${params.TEST_CASE} on ${params.TARGET}"
 
-    dir(kci_core) {
-        withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
-                                variable: 'SECRET')]) {
-            def egg_cache = eggCache()
-            sh(script: """
+    withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
+                            variable: 'SECRET')]) {
+        def egg_cache = eggCache()
+        sh(script: """
 PYTHON_EGG_CACHE=${egg_cache} \
-./scripts/push-bisection-results.py \
+kci-bisect-push-results \
 --token=${SECRET} \
 --api=${params.KCI_API_URL} \
 --lab=${params.LAB} \
@@ -583,7 +564,6 @@ PYTHON_EGG_CACHE=${egg_cache} \
 --to=\"${params.EMAIL_RECIPIENTS}\" \
 --no-auto-recipients \
 """)
-        }
     }
 }
 
@@ -591,14 +571,14 @@ PYTHON_EGG_CACHE=${egg_cache} \
  * pipeline
  */
 
-def runCheck(kdir, kci_core, git_commit, name, run_status, runs=0) {
+def runCheck(kdir, git_commit, name, run_status, runs=0) {
     def check = null
     def tag = null
 
     lock("${env.NODE_NAME}-build-lock") {
         timeout(time: 60, unit: 'MINUTES') {
             try {
-                tag = buildRevision(kdir, kci_core, git_commit, name)
+                tag = buildRevision(kdir, git_commit, name)
                 check = true
             } catch (error) {
                 check = false
@@ -612,7 +592,7 @@ def runCheck(kdir, kci_core, git_commit, name, run_status, runs=0) {
     def describe = gitDescribe(kdir)
 
     timeout(time: 120, unit: 'MINUTES') {
-        def status = runTest(kci_core, describe, run_status, runs)
+        def status = runTest(describe, run_status, runs)
         check = (status == run_status ? true : false)
     }
 
@@ -630,7 +610,7 @@ def checkAbort(passed, message) {
     return passed
 }
 
-def bisection(kci_core, kdir, checks) {
+def bisection(kdir, checks) {
     def check = null
     def good = null
     def bad = null
@@ -638,24 +618,23 @@ def bisection(kci_core, kdir, checks) {
     stage("Init") {
         timeout(time: 30, unit: 'MINUTES') {
             parallel(
-                kci_core: { cloneKciCore(kci_core) },
+                lab_info: { fetchLabInfo() },
                 kdir: { cloneLinux(kdir) },
             )
-            fetchLabInfo(kci_core)
         }
 
         bad = params.BAD_COMMIT
-        good = findMergeBase(kdir, kci_core, params.GOOD_COMMIT, bad)
+        good = findMergeBase(kdir, params.GOOD_COMMIT, bad)
     }
 
     stage("Check pass") {
-        check = runCheck(kdir, kci_core, good, 'pass', 0)
+        check = runCheck(kdir, good, 'pass', 0)
     }
     if (!checkAbort(check, "Good revision check failed"))
         return check
 
     stage("Check fail") {
-        check = runCheck(kdir, kci_core, bad, 'fail', 2)
+        check = runCheck(kdir, bad, 'fail', 2)
     }
     if (!checkAbort(check, "Bad revision check failed"))
         return check
@@ -683,7 +662,7 @@ def bisection(kci_core, kdir, checks) {
             stage("Build ${iteration}") {
                 timeout(time: 60, unit: 'MINUTES') {
                     try {
-                        buildKernel(kdir, kci_core)
+                        buildKernel(kdir)
                         status = 0
                     } catch (error) {
                         status = 1
@@ -697,7 +676,7 @@ def bisection(kci_core, kdir, checks) {
 
             stage("Test ${iteration}") {
                 timeout(time: 120, unit: 'MINUTES') {
-                    status = runTest(kci_core, describe)
+                    status = runTest(describe)
                 }
             }
         }
@@ -716,7 +695,7 @@ def bisection(kci_core, kdir, checks) {
     }
 
     stage("Verify") {
-        check = runCheck(kdir, kci_core, 'refs/bisect/bad', 'verify', 2, 3)
+        check = runCheck(kdir, 'refs/bisect/bad', 'verify', 2, 3)
         checks['verify'] = check ? 'PASS' : 'FAIL'
     }
     if (!checkAbort(check, "Result check failed"))
@@ -726,7 +705,7 @@ def bisection(kci_core, kdir, checks) {
         dir(kdir) {
             sh(script: "git revert refs/bisect/bad")
         }
-        check = runCheck(kdir, kci_core, 'HEAD', 'revert', 0, 3)
+        check = runCheck(kdir, 'HEAD', 'revert', 0, 3)
         checks['revert'] = check ? 'PASS' : 'FAIL'
     }
     if (!check)
@@ -742,7 +721,6 @@ node("docker && bisection") {
     env._LAB_JSON = "lab-info.json"
 
     def j = new Job()
-    def kci_core = "${env.WORKSPACE}/kernelci-core"
     def kdir = "${env.WORKSPACE}/linux"
     def checks = [:]
     def docker_image = null
@@ -784,7 +762,6 @@ ${params_summary}""")
     }
 
     j.dockerPullWithRetry("${params.DOCKER_BASE}kernelci").inside() {
-        j.cloneKciCore(kci_core, params.KCI_CORE_URL, params.KCI_CORE_BRANCH)
         build_env_docker_image = j.dockerImageName(
             params.BUILD_ENVIRONMENT, params.ARCH)
         docker_image = "${params.DOCKER_BASE}${build_env_docker_image}"
@@ -792,7 +769,7 @@ ${params_summary}""")
 
     j.dockerPullWithRetry(docker_image).inside() {
         try {
-            def valid_bisect = bisection(kci_core, kdir, checks)
+            def valid_bisect = bisection(kdir, checks)
             if (!valid_bisect)
                 return
         } catch (err) {
@@ -814,7 +791,7 @@ ${err}
         }
 
         stage("Report") {
-            pushResults(kci_core, kdir, checks, params_summary)
+            pushResults(kdir, checks, params_summary)
         }
     }
 }
