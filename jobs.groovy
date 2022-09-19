@@ -239,8 +239,9 @@ pipelineJob('rootfs-build-trigger') {
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
     stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the rootfs build images.')
-    stringParam('ROOTFS_CONFIG','','Name of the rootfs configuration, all rootfs will be built by default.')
+    stringParam('ROOTFS_CONFIG','','Name of the rootfs configuration, all rootfs will be built by default. Cannot be used with ROOTFS_TYPE')
     stringParam('ROOTFS_ARCH','','Name of the rootfs arch config, all given arch will be built by default.')
+    stringParam('ROOTFS_TYPE','','Name of the rootfs type config, all types will be built by default. Cannot be used with ROOTFS_CONFIG')
     stringParam('PIPELINE_VERSION','','Unique string identifier for the series of rootfs build jobs.')
   }
 }

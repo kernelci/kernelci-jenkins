@@ -31,8 +31,12 @@ DOCKER_BASE
   Dockerhub base address used for the build images
 ROOTFS_CONFIG
   Set this to limit the rootfs builds to only one configuration
+  Cannot be used with ROOTFS_TYPE
 ROOTFS_ARCH
   Set this to limit the rootfs builds to only one architecture
+ROOTFS_TYPE
+  Set this to limit the rootfs builds only to specific type. 
+  Cannot be used with ROOTFS_CONFIG
 PIPELINE_VERSION
   Unique string identifier for the series of rootfs build jobs
 */
@@ -40,7 +44,7 @@ PIPELINE_VERSION
 @Library('kernelci') _
 import org.kernelci.util.Job
 
-def listVariants(kci_core, config_list, rootfs_config, rootfs_arch) {
+def listVariants(kci_core, config_list, rootfs_config, rootfs_arch, rootfs_type) {
     def cli_opts = ' '
 
     if (rootfs_config) {
@@ -49,6 +53,10 @@ def listVariants(kci_core, config_list, rootfs_config, rootfs_arch) {
 
     if (rootfs_arch) {
         cli_opts += " --arch ${rootfs_arch}"
+    }
+
+    if (rootfs_type) {
+        cli_opts += " --rootfs-type ${rootfs_type}"
     }
 
     dir(kci_core) {
@@ -106,9 +114,10 @@ node("docker && rootfs-trigger") {
     def configs = []
 
     print("""\
-    Config:    ${params.ROOTFS_CONFIG}
-    CPU arch:  ${params.ROOTFS_ARCH}
-    Container: ${docker_image}""")
+    Config:      ${params.ROOTFS_CONFIG}
+    CPU arch:    ${params.ROOTFS_ARCH}
+    Rootfs type: ${params.ROOTFS_TYPE}
+    Container:   ${docker_image}""")
 
     j.dockerPullWithRetry(docker_image).inside() {
 
@@ -121,7 +130,7 @@ node("docker && rootfs-trigger") {
 
         stage("Configs") {
             listVariants(kci_core, configs, params.ROOTFS_CONFIG,
-                         params.ROOTFS_ARCH)
+                         params.ROOTFS_ARCH, params.ROOTFS_TYPE)
         }
 
         stage("Build") {
