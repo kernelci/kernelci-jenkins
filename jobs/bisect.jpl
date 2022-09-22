@@ -268,6 +268,14 @@ make_config \
 
         sh(script: """\
 ./kci_build \
+fetch_firmware \
+--kdir=${kdir} \
+--output=${output} \
+--install \
+""")
+
+        sh(script: """\
+./kci_build \
 make_kernel \
 --kdir=${kdir} \
 --output=${output} \
