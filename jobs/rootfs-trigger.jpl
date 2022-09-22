@@ -44,18 +44,19 @@ PIPELINE_VERSION
 @Library('kernelci') _
 import org.kernelci.util.Job
 
-def listVariants(kci_core, config_list, rootfs_config, rootfs_arch, rootfs_type) {
+def listVariants(kci_core, config_list, rootfs_config, rootfs_arch_list, rootfs_type_list) {
     def cli_opts = ' '
 
     if (rootfs_config) {
+
         cli_opts += " --rootfs-config ${rootfs_config}"
     }
 
-    if (rootfs_arch) {
+    for (String rootfs_arch: rootfs_arch_list) {
         cli_opts += " --arch ${rootfs_arch}"
     }
 
-    if (rootfs_type) {
+    for (String rootfs_type: rootfs_type_list) {
         cli_opts += " --rootfs-type ${rootfs_type}"
     }
 
@@ -129,8 +130,10 @@ node("docker && rootfs-trigger") {
         }
 
         stage("Configs") {
+            def rootfs_type_list = params.ROOTFS_TYPE.tokenize(' ')
+            def rootfs_arch_list = params.ROOTFS_ARCH.tokenize(' ')
             listVariants(kci_core, configs, params.ROOTFS_CONFIG,
-                         params.ROOTFS_ARCH, params.ROOTFS_TYPE)
+                         rootfs_arch_list, rootfs_type_list)
         }
 
         stage("Build") {
