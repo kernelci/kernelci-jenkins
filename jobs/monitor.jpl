@@ -102,7 +102,7 @@ check_new_commit \
 
 node("docker && monitor") {
     def j = new Job()
-    def docker_image = "${params.DOCKER_BASE}kernelci"
+    def docker_image = "${params.DOCKER_BASE}cros-kernelci"
 
     print("""\
     Storage:   ${params.KCI_STORAGE_URL}
