@@ -110,7 +110,7 @@ def buildRootfsStep(job, config ,arch, rootfs_type) {
 node("docker && rootfs-trigger") {
     def j = new Job()
     def kci_core = "${env.WORKSPACE}/kernelci-core"
-    def docker_image = "${params.DOCKER_BASE}kernelci"
+    def docker_image = "${params.DOCKER_BASE}cros-kernelci"
     def configs = []
 
     print("""\

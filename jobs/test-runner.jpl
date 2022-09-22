@@ -103,7 +103,7 @@ node("docker && test-runner") {
     def j = new Job()
     def jobs_dir = "${env.WORKSPACE}/jobs"
     def artifacts = "${env.WORKSPACE}/artifacts"
-    def docker_image = "${params.DOCKER_BASE}kernelci"
+    def docker_image = "${params.DOCKER_BASE}cros-kernelci"
     def labs = params.LABS.tokenize(' ')
     def labs_submit = []
 

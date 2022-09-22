@@ -57,11 +57,11 @@ kci_build \
     def cc_arch = build_env_data[3]
 
     if (cc_arch == 'sparc') /* No kselftest variant for sparc */
-        image_name = "${build_env}:${cc_arch}-kernelci"
+        image_name = "${build_env}:${cc_arch}-cros-kernelci"
     else if (cc_arch)
-        image_name = "${build_env}:${cc_arch}-kselftest-kernelci"
+        image_name = "${build_env}:${cc_arch}-kselftest-cros-kernelci"
     else
-        image_name = "${build_env}:kselftest-kernelci"
+        image_name = "${build_env}:kselftest-cros-kernelci"
 
     return image_name
 }
