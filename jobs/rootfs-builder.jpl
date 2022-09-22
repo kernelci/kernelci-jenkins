@@ -108,6 +108,10 @@ node("debos && docker") {
         docker_image = "kernelci/cros-sdk"
     }
 
+    if (rootfs_type == "chromiumos") {
+        docker_image = "kernelci/cros-sdk"
+    }
+
     print("""\
     Config:    ${config}
     CPU arch:  ${arch}
