@@ -783,7 +783,7 @@ ${params_summary}""")
         }
     }
 
-    j.dockerPullWithRetry("${params.DOCKER_BASE}kernelci").inside() {
+    j.dockerPullWithRetry("${params.DOCKER_BASE}cros-kernelci").inside() {
         j.cloneKciCore(kci_core, params.KCI_CORE_URL, params.KCI_CORE_BRANCH)
         build_env_docker_image = j.dockerImageName(
             params.BUILD_ENVIRONMENT, params.ARCH)

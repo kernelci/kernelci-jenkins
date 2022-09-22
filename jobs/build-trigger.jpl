@@ -293,7 +293,7 @@ node("docker && build-trigger") {
     def kdir = "${env.WORKSPACE}/configs/${params.BUILD_CONFIG}"
     def mirror = "${env.WORKSPACE}/linux.git"
     def labs_info = "${env.WORKSPACE}/labs"
-    def docker_image = "${params.DOCKER_BASE}kernelci"
+    def docker_image = "${params.DOCKER_BASE}cros-kernelci"
     def opts = [:]
     def configs = []
     def buildStatus = null
