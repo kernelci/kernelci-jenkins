@@ -59,8 +59,8 @@ PARALLEL_BUILDS
 
  */
 
-
-@Library('kernelci') _
+/* DO NOT MERGE IN MAIN BRANCH! CHROMEOS ONLY! */
+@Library('kernelci@chromeos.kernelci.org') _
 import org.kernelci.util.Job
 
 /* K8S build */
