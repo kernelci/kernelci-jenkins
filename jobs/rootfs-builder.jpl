@@ -47,29 +47,26 @@ PIPELINE_VERSION
 import org.kernelci.util.Job
 
 def build(config, arch, pipeline_version, kci_core, rootfs_type) {
-    dir(kci_core) {
+    /*
+      Diagnostic commands to troubleshoot ChromiumOS SDK failures
+      id is expected to be 996
+      id after sudo expected to be root (to check if sudo works)
+      df -h to check disk space, as SDK require around 200GB free space
+    */
+    if (rootfs_type == "chromiumos") {
+       sh 'id'
+       sh 'sudo id'
+       sh 'df -h'
+    }
 
-        /*
-          Diagnostic commands to troubleshoot ChromiumOS SDK failures
-          id is expected to be 996
-          id after sudo expected to be root (to check if sudo works)
-          df -h to check disk space, as SDK require around 200GB free space
-        */
-        if (rootfs_type == "chromiumos") {
-           sh 'id'
-           sh 'sudo id'
-           sh 'df -h'
-        }
-
-        sh(script: """\
-./kci_rootfs \
+    sh(script: """\
+kci_rootfs \
 build \
 --rootfs-config ${config} \
 --arch ${arch} \
---data-path config/rootfs/${rootfs_type} \
+--data-path /etc/kernelci/rootfs/${rootfs_type} \
 --output ${pipeline_version}
 """)
-    }
 }
 
 def upload(config, pipeline_version, kci_core, rootfs_type, arch) {
@@ -80,8 +77,7 @@ def upload(config, pipeline_version, kci_core, rootfs_type, arch) {
        rootfs_upload_path = "images/rootfs/buildroot/${config}/${pipeline_version}"
     }
 
-    dir(kci_core) {
-        withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
+    withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
                                 variable: 'API_TOKEN')]) {
             sh(script: """\
 ./kci_rootfs \
@@ -91,8 +87,8 @@ upload \
 --rootfs-dir ${pipeline_version}/_install_/${config} \
 --upload-path ${rootfs_upload_path}
 """)
-        }
     }
+
 }
 
 node("debos && docker") {
@@ -105,7 +101,7 @@ node("debos && docker") {
     def docker_image = "${params.DOCKER_BASE}${rootfs_type}:kernelci"
 
     if (rootfs_type == "chromiumos") {
-        docker_image = "kernelci/cros-sdk"
+        docker_image = "${params.DOCKER_BASE}sdk:kernelci"
     }
 
     if (rootfs_type == "chromiumos") {
@@ -122,10 +118,6 @@ node("debos && docker") {
         print("Invalid parameters")
         currentBuild.result = 'ABORTED'
         return
-    }
-
-    j.dockerPullWithRetry(docker_image).inside() {
-        j.cloneKciCore(kci_core, params.KCI_CORE_URL, params.KCI_CORE_BRANCH)
     }
 
     j.dockerPullWithRetry(docker_image).
