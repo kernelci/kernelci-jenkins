@@ -46,20 +46,18 @@ PIPELINE_VERSION
 @Library('kernelci') _
 import org.kernelci.util.Job
 
-def build(config, arch, pipeline_version, kci_core, rootfs_type) {
-    dir(kci_core) {
-        sh(script: """\
-./kci_rootfs \
+def build(config, arch, pipeline_version, rootfs_type) {
+    sh(script: """\
+kci_rootfs \
 build \
 --rootfs-config ${config} \
 --arch ${arch} \
---data-path config/rootfs/${rootfs_type} \
+--data-path /etc/kernelci/rootfs/${rootfs_type} \
 --output ${pipeline_version}
 """)
-    }
 }
 
-def upload(config, pipeline_version, kci_core, rootfs_type, arch) {
+def upload(config, pipeline_version, rootfs_type, arch) {
     rootfs_upload_path = "images/rootfs/debian/${config}/${pipeline_version}"
     print("\n Uploading rootfs_type: ${rootfs_type}")
 
@@ -67,24 +65,21 @@ def upload(config, pipeline_version, kci_core, rootfs_type, arch) {
        rootfs_upload_path = "images/rootfs/buildroot/${config}/${pipeline_version}"
     }
 
-    dir(kci_core) {
-        withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
-                                variable: 'API_TOKEN')]) {
-            sh(script: """\
-./kci_rootfs \
+    withCredentials([string(credentialsId: params.KCI_API_TOKEN_ID,
+                            variable: 'API_TOKEN')]) {
+        sh(script: """\
+kci_rootfs \
 upload \
 --db-token ${API_TOKEN} \
 --api ${params.KCI_API_URL} \
 --rootfs-dir ${pipeline_version}/_install_/${config} \
 --upload-path ${rootfs_upload_path}
 """)
-        }
     }
 }
 
 node("debos && docker") {
     def j = new Job()
-    def kci_core = "${env.WORKSPACE}/kernelci-core"
     def config = "${params.ROOTFS_CONFIG}"
     def arch = "${params.ROOTFS_ARCH}"
     def pipeline_version =  "${params.PIPELINE_VERSION}"
@@ -103,22 +98,18 @@ node("debos && docker") {
         return
     }
 
-    j.dockerPullWithRetry(docker_image).inside() {
-        j.cloneKciCore(kci_core, params.KCI_CORE_URL, params.KCI_CORE_BRANCH)
-    }
-
     j.dockerPullWithRetry(docker_image).
         inside(" --privileged --device /dev/kvm ") {
 
         stage("Build") {
             timeout(time: 8, unit: 'HOURS') {
-	        build(config, arch, pipeline_version, kci_core, rootfs_type)
+	              build(config, arch, pipeline_version, rootfs_type)
             }
         }
 
         stage("Upload") {
             timeout(time: 30, unit: 'MINUTES') {
-                upload(config, pipeline_version, kci_core, rootfs_type, arch);
+                upload(config, pipeline_version, rootfs_type, arch);
             }
         }
     }
