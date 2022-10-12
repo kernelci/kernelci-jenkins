@@ -90,7 +90,7 @@ node("docker" && params.NODE_LABEL) {
             sh(script: "rm -rf *")
             /* Copy host kubernetes configs */
             sh(script: "mkdir /tmp/.kube")
-            sh(script: "cp -r /.kube-host/* /tmp/.kube")
+            sh(script: "cp -r /.kube-host/config /tmp/.kube")
             /* list clusters to init/refresh auth credentials */
             print("K8S: Google Cloud clusters available:")
             /* Following commands are informational,
