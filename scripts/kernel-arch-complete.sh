@@ -310,6 +310,10 @@ fi
         echo "Sending results for weiny2 tree"
         curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'", "build_report": 1, "format": ["txt"], "send_to": ["ira.weiny@intel.com", "iweiny@gmail.com"], "delay": 60}' ${API}/send
         curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'",  "report_type": "test", "plan": "baseline", "send_to": ["ira.weiny@intel.com", "iweiny@gmail.com"], "format": ["txt"], "delay": 2700}' ${API}/send
+    elif [ "$TREE_NAME" == "matthiasbgg" ]; then
+        echo "Sending results for matthiasbgg tree"
+        curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'", "build_report": 1, "format": ["txt"], "send_to": ["matthias.bgg@kernel.org"], "delay": 60}' ${API}/send
+        curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'",  "report_type": "test", "plan": "baseline", "send_to": ["matthias.bgg@kernel.org"], "format": ["txt"], "delay": 2700}' ${API}/send
 
     else
         # Private Mailing List
