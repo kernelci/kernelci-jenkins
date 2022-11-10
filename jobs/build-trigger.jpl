@@ -303,7 +303,7 @@ node("docker && build-trigger") {
     Commit:    ${params.COMMIT_ID}
     Container: ${docker_image}""")
 
-    j.dockerPullWithRetry(docker_image).inside() {
+    j.dockerPullWithRetry(docker_image).inside('--init') {
         def labs = []
 
         stage("Labs") {

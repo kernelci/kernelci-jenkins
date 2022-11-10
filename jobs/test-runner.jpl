@@ -111,7 +111,7 @@ node("docker && test-runner") {
     Labs:      ${params.LABS}
     Container: ${docker_image}""")
 
-    j.dockerPullWithRetry(docker_image).inside() {
+    j.dockerPullWithRetry(docker_image).inside('--init') {
         stage("Init") {
             sh(script: "rm -rf ${artifacts}")
             sh(script: "rm -rf ${jobs_dir}")

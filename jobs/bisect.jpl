@@ -769,13 +769,13 @@ ${params_summary}""")
         }
     }
 
-    j.dockerPullWithRetry("${params.DOCKER_BASE}kernelci").inside() {
+    j.dockerPullWithRetry("${params.DOCKER_BASE}kernelci").inside('--init') {
         build_env_docker_image = j.dockerImageName(
             params.BUILD_ENVIRONMENT, params.ARCH)
         docker_image = "${params.DOCKER_BASE}${build_env_docker_image}"
     }
 
-    j.dockerPullWithRetry(docker_image).inside() {
+    j.dockerPullWithRetry(docker_image).inside('--init') {
         try {
             def valid_bisect = bisection(kdir, checks)
             if (!valid_bisect)
