@@ -108,7 +108,7 @@ node("docker && monitor") {
     Storage:   ${params.KCI_STORAGE_URL}
     Container: ${docker_image}""")
 
-    j.dockerPullWithRetry(docker_image).inside() {
+    j.dockerPullWithRetry(docker_image).inside('--init') {
         stage("Monitor") {
             def config_list = null
             def config_jobs = [:]

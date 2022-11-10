@@ -79,7 +79,7 @@ node("docker" && params.NODE_LABEL) {
     K8S ctx:   ${k8s_context}""")
 
     docker_image = "${params.DOCKER_BASE}k8s:kernelci"
-    j.dockerPullWithRetry(docker_image).inside("-v $HOME/.kube:/.kube-host:ro -v $HOME/.config/gcloud:/.config/gcloud -v $HOME/.azure:/.azure") {
+    j.dockerPullWithRetry(docker_image).inside("--init -v $HOME/.kube:/.kube-host:ro -v $HOME/.config/gcloud:/.config/gcloud -v $HOME/.azure:/.azure") {
         build_env_docker_image = j.dockerImageName(
             params.BUILD_ENVIRONMENT, params.ARCH
         )

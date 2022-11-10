@@ -103,12 +103,12 @@ node("debos && docker") {
         return
     }
 
-    j.dockerPullWithRetry(docker_image).inside() {
+    j.dockerPullWithRetry(docker_image).inside('--init') {
         j.cloneKciCore(kci_core, params.KCI_CORE_URL, params.KCI_CORE_BRANCH)
     }
 
     j.dockerPullWithRetry(docker_image).
-        inside(" --privileged --device /dev/kvm ") {
+        inside(" --privileged --device /dev/kvm --init ") {
 
         stage("Build") {
             timeout(time: 8, unit: 'HOURS') {

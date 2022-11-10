@@ -120,7 +120,7 @@ node("docker && rootfs-trigger") {
     Rootfs type: ${params.ROOTFS_TYPE}
     Container:   ${docker_image}""")
 
-    j.dockerPullWithRetry(docker_image).inside() {
+    j.dockerPullWithRetry(docker_image).inside('--init') {
 
         stage("Init") {
             timeout(time: 15, unit: 'MINUTES') {
