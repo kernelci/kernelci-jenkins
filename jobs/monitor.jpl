@@ -84,7 +84,7 @@ check_new_commit \
         return
     }
 
-    print("${config}: triggering build")
+    print("${config}: triggering build with commit ${commit}")
 
     updateLastCommit(config, commit)
 
