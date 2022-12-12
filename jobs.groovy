@@ -86,7 +86,7 @@ pipelineJob('kernel-build-trigger') {
     stringParam('LABS_WHITELIST', KCI_LABS_LIST, 'List of labs to include in the tests, all labs will be tested by default.')
     stringParam('KCI_API_TOKEN_ID', KCI_API_TOKEN_ID, 'Identifier of the KernelCI backend API token stored in Jenkins.')
     stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI Backend API')
-    stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
+    stringParam('KCI_STORAGE_CONFIG', KCI_STORAGE_CONFIG, 'Name of the KernelCI storage configuration.')
     stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
     stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
     stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the build images.')

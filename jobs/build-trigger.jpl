@@ -36,8 +36,8 @@ KCI_API_URL (https://api.kernelci.org)
   URL of the KernelCI backend API
 KCI_API_TOKEN_ID
   Identifier of the KernelCI backend API token stored in Jenkins
-KCI_STORAGE_URL (https://storage.kernelci.org/)
-  URL of the KernelCI storage server
+KCI_STORAGE_CONFIG (storage.kernelci.org)
+  Name of the KernelCI storage configuration
 DOCKER_BASE (kernelci/)
   Dockerhub base address used for the build images
 ALLOW_REBUILD (false)
@@ -93,7 +93,7 @@ kci_build \
 push_tarball \
 --build-config=${config} \
 --kdir=${kdir} \
---storage=${params.KCI_STORAGE_URL} \
+--storage-config=${params.KCI_STORAGE_CONFIG} \
 --api=${params.KCI_API_URL} \
 --db-token=${SECRET} \
 """, returnStdout: true).trim()
@@ -250,7 +250,7 @@ def buildKernelStep(job, arch, defconfig, build_env, opts, labs) {
         'PARALLEL_BUILDS': parallel_builds,
         'KCI_API_URL': "${params.KCI_API_URL}",
         'KCI_API_TOKEN_ID': "${params.KCI_API_TOKEN_ID}",
-        'KCI_STORAGE_URL': "${params.KCI_STORAGE_URL}",
+        'KCI_STORAGE_CONFIG': "${params.KCI_STORAGE_CONFIG}",
         'DOCKER_BASE': "${params.DOCKER_BASE}",
     ]
     def job_params = []
