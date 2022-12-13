@@ -52,6 +52,8 @@ KCI_API_TOKEN_ID
   Identifier of the KernelCI backend API token stored in Jenkins
 KCI_STORAGE_URL (https://storage.kernelci.org/)
   URL of the KernelCI storage server
+KCI_STORAGE_CONFIG (storage.kernelci.org)
+  Name of the KernelCI storage configuration
 DOCKER_BASE (kernelci/)
   Dockerhub base address used for the build images
 PARALLEL_BUILDS
