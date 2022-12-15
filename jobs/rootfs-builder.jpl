@@ -28,8 +28,8 @@ KCI_CORE_URL (https://github.com/kernelci/kernelci-core.git)
   URL of the kernelci-core repository
 KCI_CORE_BRANCH (master)
   Name of the branch to use in the kernelci-core repository
-KCI_API_URL (https://api.kernelci.org)
-  URL of the KernelCI backend API
+KCI_STORAGE_CONFIG (storage.kernelci.org)
+  Name of the KernelCI storage configuration
 KCI_API_TOKEN_ID
   Identifier of the KernelCI backend API token stored in Jenkins
 DOCKER_BASE
@@ -73,8 +73,8 @@ def upload(config, pipeline_version, kci_core, rootfs_type, arch) {
             sh(script: """\
 ./kci_rootfs \
 upload \
---db-token ${API_TOKEN} \
---api ${params.KCI_API_URL} \
+--storage-config ${KCI_STORAGE_CONFIG} \
+--storage-cred ${API_TOKEN} \
 --rootfs-dir ${pipeline_version}/_install_/${config} \
 --upload-path ${rootfs_upload_path}
 """)
