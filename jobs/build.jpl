@@ -84,6 +84,7 @@ node("docker" && params.NODE_LABEL) {
             params.BUILD_ENVIRONMENT, params.ARCH
         )
         env.KUBECONFIG="/tmp/.kube/config"
+        env.USE_GKE_GCLOUD_AUTH_PLUGIN="true"
 
         stage("Init") {
             /* Remove old bmeta.json and etc, as jenkins make workspace persistent, even it is not mapped as volume in docker */
@@ -91,6 +92,14 @@ node("docker" && params.NODE_LABEL) {
             /* Copy host kubernetes configs */
             sh(script: "mkdir /tmp/.kube")
             sh(script: "cp -r /.kube-host/config /tmp/.kube")
+            /* temporary hack to retrieve fresh credentials for kubectl from all clusters, hardcoded now */
+            print("K8S: Updating kubectl credentials")
+            sh(script: "gcloud container clusters get-credentials kci-eu-west1 --region europe-west1-d")
+            sh(script: "gcloud container clusters get-credentials kci-eu-west4 --region europe-west4-c")
+            sh(script: "gcloud container clusters get-credentials kci-us-central1 --region us-central1-c")
+            sh(script: "gcloud container clusters get-credentials kci-big-us-east4 --region us-east4-c")
+            sh(script: "gcloud container clusters get-credentials kci-us-west1 --region us-west1-a")
+
             /* list clusters to init/refresh auth credentials */
             print("K8S: Google Cloud clusters available:")
             /* Following commands are informational,
