@@ -56,6 +56,12 @@ kci_build \
     def build_env_data = build_env_raw.split('\n').toList()
     def cc_arch = build_env_data[3]
 
+    /* Some architecture builds include other arch */
+    if (cc_arch == 'x86_64')
+        cc_arch = "x86"
+    if (cc_arch == 'riscv')
+        cc_arch = "riscv64"
+
     if (cc_arch == 'sparc') /* No kselftest variant for sparc */
         image_name = "${build_env}:${cc_arch}-kernelci"
     else if (cc_arch)
