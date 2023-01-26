@@ -53,9 +53,6 @@ fi
         echo "Sending results to Android maintainers"
         curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'", "build_report": 1, "send_to": ["tom.gall@linaro.org", "sumit.semwal@linaro.org", "amit.pundir@linaro.org", "arnd.bergmann@linaro.org", "anmar.oueja@linaro.org", "kernel-team+kernelci@android.com", "gregkh@google.com", "fellows@kernelci.org"], "format": ["txt"], "delay": 10}' ${API}/send
         curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'",  "report_type": "test", "plan": "baseline", "send_to": ["tom.gall@linaro.org", "sumit.semwal@linaro.org", "amit.pundir@linaro.org", "arnd.bergmann@linaro.org", "anmar.oueja@linaro.org", "kernel-team+kernelci@android.com", "gregkh@google.com", "fellows@kernelci.org"], "format": ["txt"], "delay": 12600}' ${API}/send
-	if [ "$BRANCH" == "android-3.18" ]; then
-            curl -XPOST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'", "build_report": 1, "format": ["txt"], "send_to": ["lee.jones@linaro.org"], "delay": 60}' ${API}/send
-	fi
     elif [ "$TREE_NAME" == "ardb" ]; then
         echo "Sending results to Ard Biesheuvel"
         curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'", "build_report": 1, "send_to": ["ardb@kernel.org", "fellows@kernelci.org"], "format": ["txt", "html"], "delay": 10}' ${API}/send
