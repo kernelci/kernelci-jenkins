@@ -63,6 +63,8 @@ KCI_API_URL (https://api.kernelci.org)
   URL of the KernelCI backend API
 KCI_API_TOKEN_ID
   Identifier of the KernelCI backend API token stored in Jenkins
+KCI_STORAGE_CONFIG (storage.kernelci.org)
+  Name of the KernelCI storage configuration
 KCI_STORAGE_URL (https://storage.kernelci.org/)
   URL of the KernelCI storage server
 KCI_DB_CONFIG (kernelci.org)
@@ -302,9 +304,8 @@ make_kselftest \
 kci_build \
 push_kernel \
 --kdir=${kdir} \
---db-token=${SECRET} \
---api=${params.KCI_API_URL} \
---db-config=${KCI_DB_CONFIG} \
+--storage-config=${KCI_STORAGE_CONFIG} \
+--storage-cred=${SECRET} \
 --output=${output} \
 """)
     }
