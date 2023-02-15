@@ -338,10 +338,10 @@ def fetchLabInfo() {
                 sh(script: """\
 kci_test \
 get_lab_info \
---lab-config=${params.LAB} \
---lab-json=${env._LAB_JSON} \
+--runtime-config=${params.LAB} \
+--runtime-json=${env._LAB_JSON} \
 --user=kernel-ci \
---lab-token=${SECRET} \
+--runtime-token=${SECRET} \
 """)
                 retry = 0
             }
@@ -377,10 +377,10 @@ generate \
 --install-path=. \
 --storage=${params.KCI_STORAGE_URL} \
 --db-config=${KCI_DB_CONFIG} \
---lab-json=${env._LAB_JSON} \
---lab-config=${params.LAB} \
+--runtime-json=${env._LAB_JSON} \
+--runtime-config=${params.LAB} \
 --user=kernel-ci \
---lab-token=${SECRET} \
+--runtime-token=${SECRET} \
 --callback-id=${params.LAVA_CALLBACK} \
 --callback-url=${hook.getURL()} \
 --callback-dataset=results \
@@ -393,9 +393,9 @@ generate \
         sh(script: """ \
 kci_test \
 submit \
---lab-config=${params.LAB} \
+--runtime-config=${params.LAB} \
 --user=kernel-ci \
---lab-token=${SECRET} \
+--runtime-token=${SECRET} \
 --jobs=job.yaml \
 """)
     }
