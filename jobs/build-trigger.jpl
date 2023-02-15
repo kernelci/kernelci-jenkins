@@ -189,8 +189,8 @@ def getLabsWithTests(build_job_name, number, labs) {
 #!/bin/sh -e
 kci_test \
 list_jobs \
---lab-config=${lab} \
---lab-json=${lab_json} \
+--runtime-config=${lab} \
+--runtime-json=${lab_json} \
 --install-path=${artifacts} \
 """, returnStdout: true).trim()
 
@@ -335,10 +335,10 @@ node("docker && build-trigger") {
                             sh(script: """\
 kci_test \
 get_lab_info \
---lab-config=${lab} \
---lab-json=${lab_json} \
+--runtime-config=${lab} \
+--runtime-json=${lab_json} \
 --user=kernel-ci \
---lab-token=${SECRET} \
+--runtime-token=${SECRET} \
 """)
                         }
                         labs.add(lab)

@@ -71,11 +71,11 @@ def generateJobs(lab, artifacts, jobs_dir)
 kci_test \
 generate \
 --install-path=${artifacts} \
---lab-json=${artifacts}/${lab}.json \
+--runtime-json=${artifacts}/${lab}.json \
 --storage=${params.KCI_STORAGE_URL} \
---lab-config=${lab} \
+--runtime-config=${lab} \
 --user=kernel-ci \
---lab-token=${SECRET} \
+--runtime-token=${SECRET} \
 --output=${jobs_dir} \
 --callback-id=${params.CALLBACK_ID} \
 --callback-url=${params.CALLBACK_URL} \
@@ -91,9 +91,9 @@ def submitJobs(lab, jobs_dir)
         sh(script: """\
 kci_test \
 submit \
---lab-config=${lab} \
+--runtime-config=${lab} \
 --user=kernel-ci \
---lab-token=${SECRET} \
+--runtime-token=${SECRET} \
 --jobs=${jobs_dir}/* \
 """)
     }
