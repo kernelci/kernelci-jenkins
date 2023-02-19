@@ -44,13 +44,11 @@ pipelineJob('kernel-tree-monitor') {
     numToKeep(200)
   }
   parameters {
+    stringParam('CONFIG_LIST', KCI_CONFIG_LIST, 'List of build configs to check instead of all the ones in build-configs.yaml.')
     stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI back-end API.')
     stringParam('KCI_API_TOKEN_ID', KCI_API_TOKEN_ID, 'Identifier of the KernelCI backend API token stored in Jenkins.')
     stringParam('KCI_STORAGE_CONFIG', KCI_STORAGE_CONFIG, 'Name of the KernelCI storage configuration.')
-    stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
-    stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
     stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the build images.')
-    stringParam('CONFIG_LIST', KCI_CONFIG_LIST, 'List of build configs to check instead of all the ones in build-configs.yaml.')
   }
 }
 
@@ -84,11 +82,9 @@ pipelineJob('kernel-build-trigger') {
     booleanParam('PUBLISH', true, 'Publish build results via the KernelCI backend API')
     booleanParam('EMAIL', true, 'Send build results via email')
     stringParam('LABS_WHITELIST', KCI_LABS_LIST, 'List of labs to include in the tests, all labs will be tested by default.')
-    stringParam('KCI_API_TOKEN_ID', KCI_API_TOKEN_ID, 'Identifier of the KernelCI backend API token stored in Jenkins.')
     stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI Backend API')
+    stringParam('KCI_API_TOKEN_ID', KCI_API_TOKEN_ID, 'Identifier of the KernelCI backend API token stored in Jenkins.')
     stringParam('KCI_STORAGE_CONFIG', KCI_STORAGE_CONFIG, 'Name of the KernelCI storage configuration.')
-    stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
-    stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
     stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the build images.')
     booleanParam('ALLOW_REBUILD', false, 'Allow building the same revision again.')
   }
@@ -135,10 +131,8 @@ pipelineJob('kernel-build') {
     stringParam('KCI_API_TOKEN_ID', KCI_API_TOKEN_ID, 'Identifier of the KernelCI backend API token stored in Jenkins.')
     stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
     stringParam('KCI_STORAGE_CONFIG', KCI_STORAGE_CONFIG, 'Name of the KernelCI storage configuration.')
-    stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
-    stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
-    stringParam('PARALLEL_BUILDS', '4', 'Number of kernel builds to run in parallel')
     stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the build images.')
+    stringParam('PARALLEL_BUILDS', '4', 'Number of kernel builds to run in parallel')
   }
 }
 
@@ -203,12 +197,10 @@ pipelineJob('test-runner') {
     stringParam('LABS', '', 'Names of the labs where to submit tests')
     stringParam('TRIGGER_JOB_NAME', 'kernel-build-trigger', 'Name of the parent trigger job')
     stringParam('TRIGGER_JOB_NUMBER', '', 'Number of the parent trigger job')
-    stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
-    stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
-    stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
-    stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the build images.')
     stringParam('BUILD_JOB_NAME', 'kernel-build', 'Name of the job that built the kernel')
     stringParam('BUILD_JOB_NUMBER', '', 'Number of the job that built the kernel')
+    stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
+    stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the build images.')
     stringParam('CALLBACK_ID', KCI_CALLBACK_ID, 'Identifier of the callback to look up an authentication token')
     stringParam('CALLBACK_URL', KCI_API_URL, 'Base URL where to send the callbacks')
   }
@@ -330,19 +322,15 @@ pipelineJob('lava-bisection') {
     stringParam('TEST_PLAN_VARIANT', '', 'Name of the KernelCI test plan variant (e.g. baseline_qemu)')
     stringParam('TEST_CASE', '', 'Test case path in dotted syntax (e.g. baseline.dmesg.crit)')
     stringParam('TEST_RUNS', '1', 'Number of LAVA jobs to run before considering pass or fail.')
-
+    stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI back-end API.')
+    stringParam('KCI_API_TOKEN_ID', KCI_API_TOKEN_ID, 'Identifier of the KernelCI backend API token stored in Jenkins.')
+    stringParam('KCI_STORAGE_CONFIG', KCI_STORAGE_CONFIG, 'Name of the KernelCI storage configuration.')
+    stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
+    stringParam('KCI_DB_CONFIG', KCI_DB_CONFIG, 'Value to use with the --db-config argument')
+    stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the build images.')
     stringParam('LAVA_CALLBACK', KCI_BISECTION_CALLBACK_ID, 'Description of the LAVA auth token to look up and use in LAVA callbacks')
     stringParam('EMAIL_RECIPIENTS', KCI_BISECTION_EMAIL_RECIPIENTS, 'List of recipients for all emails generated by this job')
     stringParam('LABS_WHITELIST', KCI_BISECTION_LABS_WHITELIST, 'If defined, jobs will abort if the LAB is not on that list.')
     stringParam('TREES_WHITELIST', KCI_BISECTION_TREES_WHITELIST, 'If defined, jobs will abort if the KERNEL_TREE is not on that list.')
-
-    stringParam('KCI_API_URL', KCI_API_URL, 'URL of the KernelCI back-end API.')
-    stringParam('KCI_API_TOKEN_ID', KCI_API_TOKEN_ID, 'Identifier of the KernelCI backend API token stored in Jenkins.')
-    stringParam('KCI_STORAGE_URL', KCI_STORAGE_URL, 'URL of the KernelCI storage server.')
-    stringParam('KCI_STORAGE_CONFIG', KCI_STORAGE_CONFIG, 'Name of the KernelCI storage configuration.')
-    stringParam('KCI_DB_CONFIG', KCI_DB_CONFIG, 'Value to use with the --db-config argument')
-    stringParam('KCI_CORE_URL', KCI_CORE_URL, 'URL of the kernelci-core repository.')
-    stringParam('KCI_CORE_BRANCH', KCI_CORE_BRANCH, 'Name of the branch to use in the kernelci-core repository.')
-    stringParam('DOCKER_BASE', KCI_DOCKER_BASE, 'Dockerhub base address used for the build images.')
   }
 }
