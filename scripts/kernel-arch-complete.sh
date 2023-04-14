@@ -285,8 +285,8 @@ fi
         curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'", "build_report": 1, "format": ["txt"], "send_to": ["rppt@kernel.org", "kernelci-results@groups.io"], "delay": 60}' ${API}/send
         curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'",  "report_type": "test", "plan": "baseline", "send_to": ["rppt@kernel.org", "kernelci-results@groups.io"], "format": ["txt"], "delay": 1800}' ${API}/send
     elif [ "$TREE_NAME" == "rt-stable" ]; then
-        echo "Sending results for net-next tree"
-        curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'", "build_report": 1, "format": ["txt"], "send_to": ["kernel-build-reports@lists.linaro.org", "kernelci-results@groups.io"], "delay": 60}' ${API}/send
+        echo "Sending results for rt-stable tree"
+        curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'", "build_report": 1, "format": ["txt"], "send_to": ["linux-rt-users@vger.kernel.org", "kernel-build-reports@lists.linaro.org", "kernelci-results@groups.io"], "delay": 60}' ${API}/send
     elif [ "$TREE_NAME" == "samsung" ]; then
         echo "Sending results to Samsung Team"
         curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'", "build_report": 1, "send_to": ["krzk@kernel.org", "kgene.kim@samsung.com", "kernelci-results@groups.io"], "format": ["txt", "html"], "delay": 10}' ${API}/send
