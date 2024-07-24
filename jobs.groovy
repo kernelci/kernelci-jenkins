@@ -278,6 +278,7 @@ pipelineJob('rootfs-builder') {
   }
 }
 
+/*
 pipelineJob('lava-bisection') {
   definition {
     cpsScm {
@@ -334,3 +335,4 @@ pipelineJob('lava-bisection') {
     stringParam('TREES_WHITELIST', KCI_BISECTION_TREES_WHITELIST, 'If defined, jobs will abort if the KERNEL_TREE is not on that list.')
   }
 }
+*/
