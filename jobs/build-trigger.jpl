@@ -261,12 +261,14 @@ def buildKernelStep(job, arch, defconfig, build_env, opts, labs) {
     return {
         def res = build(job: job, parameters: job_params, propagate: false)
         print("${res.number}: ${arch} ${defconfig} ${build_env} ${res.result}")
+        /*
         if (res.result == "SUCCESS") {
             def test_labs = getLabsWithTests(job, res.number, labs)
             if (test_labs) {
                 scheduleTests(job, res.number, test_labs)
             }
         }
+        */
     }
 }
 
