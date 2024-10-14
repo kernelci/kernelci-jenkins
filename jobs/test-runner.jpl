@@ -112,6 +112,10 @@ node("docker && test-runner") {
     Container: ${docker_image}""")
 
     j.dockerPullWithRetry(docker_image).inside('--init') {
+        stage("Skip") {
+            print("Legacy setup wont execute tests")
+            return
+        }
         stage("Init") {
             sh(script: "rm -rf ${artifacts}")
             sh(script: "rm -rf ${jobs_dir}")
