@@ -34,7 +34,7 @@ fi
 
     echo "Build has now finished, reporting result to dashboard."
     curl -X POST -H "Authorization: $EMAIL_AUTH_TOKEN" -H "Content-Type: application/json" -d '{"job": "'$TREE_NAME'", "kernel": "'$GIT_DESCRIBE'", "git_branch": "'$BRANCH'"}' ${API}/job
-
+    exit 0
     if [ "$EMAIL" != "true" ]; then
         echo "Not sending emails because EMAIL was false"
         exit 0
